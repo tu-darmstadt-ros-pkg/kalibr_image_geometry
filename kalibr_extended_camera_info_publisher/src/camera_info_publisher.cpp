@@ -8,7 +8,10 @@ namespace kalibr_extended_camera_info_publisher {
 
 CameraInfoPublisher::CameraInfoPublisher(const ros::NodeHandle& pnh)
   : pnh_(pnh)
-{}
+{
+  pnh.param("camera_ns", camera_ns_, std::string(""));
+  camera_nh_ = ros::NodeHandle(camera_ns_);
+}
 
 bool CameraInfoPublisher::loadCameraInfoFromNamespace(const ros::NodeHandle& nh)
 {
@@ -38,7 +41,7 @@ bool CameraInfoPublisher::loadCameraInfoFromNamespace(const ros::NodeHandle& nh)
   }
 
   if (success) {
-    cam_info_pub_ = pnh_.advertise<kalibr_image_geometry_msgs::ExtendedCameraInfo>("extended_camera_info", 10, true);
+    cam_info_pub_ = camera_nh_.advertise<kalibr_image_geometry_msgs::ExtendedCameraInfo>("extended_camera_info", 10, true);
   }
 
   return success;

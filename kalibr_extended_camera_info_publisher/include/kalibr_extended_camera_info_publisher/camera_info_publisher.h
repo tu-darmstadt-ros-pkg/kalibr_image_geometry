@@ -23,6 +23,8 @@ public:
   void latchCameraInfo();
 private:
   ros::NodeHandle pnh_;
+  std::string camera_ns_;
+  ros::NodeHandle camera_nh_;
   kalibr_image_geometry_msgs::ExtendedCameraInfo camera_info_;
   ros::Publisher cam_info_pub_;
 };
