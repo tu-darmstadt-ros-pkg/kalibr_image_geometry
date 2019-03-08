@@ -1,7 +1,7 @@
 Header header
 
 string camera_name # unique identifier of camera. should match camera ns
-uint32[] resolution # [width, height]
+int32[] resolution # [width, height]
 string frame_id # Optional. Overrides image frame_id
 
 string camera_model # projection model
