@@ -1,7 +1,6 @@
 #include <kalibr_camera_loader/camera.h>
 
 namespace kalibr_image_geometry {
-namespace kalibr_camera_loader {
 
 Camera::Camera(const ros::NodeHandle& camera_nh)
   : camera_nh_(camera_nh), camera_info_received_(false), it_(camera_nh)
@@ -76,7 +75,7 @@ std::string Camera::getName() const
   return model().cameraInfo().camera_name;
 }
 
-const kalibr_camera_model::CameraModel& Camera::model() const
+const CameraModel& Camera::model() const
 {
   return model_;
 }
@@ -84,8 +83,6 @@ const kalibr_camera_model::CameraModel& Camera::model() const
 sensor_msgs::ImageConstPtr Camera::getLastImage() const
 {
   return last_image_;
-}
-
 }
 
 }

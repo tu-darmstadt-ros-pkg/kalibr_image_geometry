@@ -8,7 +8,6 @@
 #include <image_transport/image_transport.h>
 
 namespace kalibr_image_geometry {
-namespace kalibr_camera_loader {
 
 class Camera {
 public:
@@ -24,7 +23,7 @@ public:
   cv_bridge::CvImageConstPtr getLastImageCv() const;
 
   std::string getName() const;
-  const kalibr_camera_model::CameraModel& model() const;
+  const CameraModel& model() const;
 
 private:
   void cameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCameraInfoConstPtr& camera_info);
@@ -32,7 +31,7 @@ private:
 
   ros::NodeHandle camera_nh_;
   std::string name_;
-  kalibr_camera_model::CameraModel model_;
+  CameraModel model_;
   sensor_msgs::ImageConstPtr last_image_;
 
   ros::Subscriber camera_info_sub_;
@@ -40,8 +39,6 @@ private:
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
 };
-
-}
 
 }
 

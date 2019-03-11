@@ -5,7 +5,6 @@
 #include <kalibr_image_geometry_msgs/ExtendedCameraInfo.h>
 
 namespace kalibr_image_geometry {
-namespace kalibr_extended_camera_info_publisher {
 
 template<typename T> bool getParam(const ros::NodeHandle& nh, const std::string& key, T& var) {
   if (!nh.getParam(key, var)) {
@@ -28,8 +27,6 @@ private:
   kalibr_image_geometry_msgs::ExtendedCameraInfo camera_info_;
   ros::Publisher cam_info_pub_;
 };
-
-}
 
 }
 

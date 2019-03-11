@@ -3,7 +3,6 @@
 #include <cv_bridge/cv_bridge.h>
 
 namespace kalibr_image_geometry {
-namespace kalibr_camera_model {
 
 CameraModel::CameraModel()
   : initialized_(false) {
@@ -99,6 +98,4 @@ const kalibr_image_geometry_msgs::ExtendedCameraInfo& CameraModel::cameraInfo() 
   return camera_info_;
 }
 
-
-}
 }

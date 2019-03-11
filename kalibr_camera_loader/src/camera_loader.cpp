@@ -1,7 +1,6 @@
 #include <kalibr_camera_loader/camera_loader.h>
 
 namespace kalibr_image_geometry {
-namespace kalibr_camera_loader {
 
 CameraLoader::CameraLoader(const ros::NodeHandle& nh, const ros::NodeHandle& pnh)
   : nh_(nh), pnh_(pnh)
@@ -59,8 +58,6 @@ void CameraLoader::stopImageSubscribers()
 const std::vector<Camera>&CameraLoader::cameras() const
 {
   return cameras_;
-}
-
 }
 
 }

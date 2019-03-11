@@ -9,7 +9,6 @@
 using namespace aslam::cameras;
 
 namespace kalibr_image_geometry {
-namespace kalibr_camera_model {
 
 constexpr double INVALID = std::numeric_limits<double>::max();
 
@@ -43,7 +42,6 @@ private:
 
 };
 
-}
 }
 
 #endif

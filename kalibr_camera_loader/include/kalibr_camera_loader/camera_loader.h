@@ -17,7 +17,6 @@ template<typename T> bool getParam(const ros::NodeHandle& nh, const std::string&
 }
 
 namespace kalibr_image_geometry {
-namespace kalibr_camera_loader {
 
 class CameraLoader {
 public:
@@ -32,8 +31,6 @@ private:
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
 };
-
-}
 
 }
 

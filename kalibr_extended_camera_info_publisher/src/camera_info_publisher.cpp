@@ -4,7 +4,6 @@
 #include <cv_bridge/cv_bridge.h>
 
 namespace kalibr_image_geometry {
-namespace kalibr_extended_camera_info_publisher {
 
 CameraInfoPublisher::CameraInfoPublisher(const ros::NodeHandle& pnh)
   : pnh_(pnh)
@@ -52,5 +51,4 @@ void CameraInfoPublisher::latchCameraInfo()
   cam_info_pub_.publish(camera_info_);
 }
 
-}
 }
