@@ -19,7 +19,7 @@ bool CameraInfoPublisher::loadCameraInfoFromNamespace(const ros::NodeHandle& nh)
   bool success = true;
   success = success && getParam<std::string>(nh, "camera_name", camera_info_.camera_name);
   success = success && getParam<std::vector<int>>(nh, "resolution", camera_info_.resolution);
-  success = success && getParam<std::string>(nh, "resolution", camera_info_.frame_id);
+  success = success && getParam<std::string>(nh, "frame_id", camera_info_.frame_id);
   success = success && getParam<std::string>(nh, "camera_model", camera_info_.camera_model);
   success = success && getParam<std::vector<double>>(nh, "intrinsics", camera_info_.intrinsics);
   success = success && getParam<std::string>(nh, "distortion_model", camera_info_.distortion_model);
