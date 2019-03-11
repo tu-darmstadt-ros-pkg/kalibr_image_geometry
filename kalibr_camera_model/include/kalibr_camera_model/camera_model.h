@@ -24,17 +24,21 @@ struct Color {
 class CameraModel {
 public:
   CameraModel();
-  bool fromExtendedCameraInfo(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info);
+  bool fromExtendedCameraInfo(const kalibr_image_geometry_msgs::ExtendedCameraInfo& cameraInfo);
+  bool isInitialized();
 
   bool worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const;
   Color worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const;
 
+  const kalibr_image_geometry_msgs::ExtendedCameraInfo& cameraInfo() const;
+
 private:
-  std::shared_ptr<CameraGeometryBase> createCameraGeometry(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info);
+  std::shared_ptr<CameraGeometryBase> createCameraGeometry(const kalibr_image_geometry_msgs::ExtendedCameraInfo& cameraInfo);
   cv::Vec3b interpolate(const cv::Mat& img, const Eigen::Vector2d &pixel) const;
   double distanceFromCenter(Eigen::Vector2d& pixel) const;
 
-  kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info_;
+  bool initialized_;
+  kalibr_image_geometry_msgs::ExtendedCameraInfo camera_info_;
   std::shared_ptr<CameraGeometryBase> camera_geometry_;
 
 };

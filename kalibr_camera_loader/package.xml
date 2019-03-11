@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>kalibr_camera_loader</name>
+  <version>0.0.0</version>
+  <description>The kalibr_camera_loader package</description>
+
+  <maintainer email="oehler@sim.tu-darmstadt.de">Martin Oehler</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>BSD</license>
+
+
+  <!-- Url tags are optional, but multiple are allowed, one per tag -->
+  <!-- Optional attribute type can be: website, bugtracker, or repository -->
+  <!-- Example: -->
+  <!-- <url type="website">http://wiki.ros.org/kalibr_camera_loader</url> -->
+
+  <author email="oehler@sim.tu-darmstadt.de">Martin Oehler</author>
+
+
+  <!-- The *depend tags are used to specify dependencies -->
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>kalibr_camera_model</depend>
+  <depend>image_transport</depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

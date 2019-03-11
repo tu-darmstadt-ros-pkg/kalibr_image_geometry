@@ -5,6 +5,11 @@
 namespace kalibr_image_geometry {
 namespace kalibr_camera_model {
 
+CameraModel::CameraModel()
+  : initialized_(false) {
+
+}
+
 bool CameraModel::fromExtendedCameraInfo(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info)
 {
   camera_info_ = camera_info;
@@ -14,7 +19,13 @@ bool CameraModel::fromExtendedCameraInfo(const kalibr_image_geometry_msgs::Exten
     return false;
   }
 
+  initialized_ = true;
   return true;
+}
+
+bool CameraModel::isInitialized()
+{
+  return initialized_;
 }
 
 bool CameraModel::worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const
@@ -81,6 +92,11 @@ cv::Vec3b CameraModel::interpolate(const cv::Mat& img, const Eigen::Vector2d& pi
 double CameraModel::distanceFromCenter(Eigen::Vector2d& pixel) const
 {
   return std::pow(pixel(0) - camera_info_.resolution[0] / 2.0, 2) + std::pow(pixel(1) - camera_info_.resolution[1] / 2.0, 2);
+}
+
+const kalibr_image_geometry_msgs::ExtendedCameraInfo& CameraModel::cameraInfo() const
+{
+  return camera_info_;
 }
 
 
