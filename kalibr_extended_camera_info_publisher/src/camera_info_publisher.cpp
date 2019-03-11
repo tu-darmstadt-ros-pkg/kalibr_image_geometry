@@ -7,13 +7,13 @@ namespace kalibr_image_geometry {
 
 CameraInfoPublisher::CameraInfoPublisher(const ros::NodeHandle& pnh)
   : pnh_(pnh)
-{
-  pnh.param("camera_ns", camera_ns_, std::string(""));
-  camera_nh_ = ros::NodeHandle(camera_ns_);
-}
+{}
 
 bool CameraInfoPublisher::loadCameraInfoFromNamespace(const ros::NodeHandle& nh)
 {
+  nh.param("camera_ns", camera_ns_, std::string(""));
+  camera_nh_ = ros::NodeHandle(camera_ns_);
+
   camera_info_ = kalibr_image_geometry_msgs::ExtendedCameraInfo();
 
   bool success = true;

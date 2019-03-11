@@ -7,8 +7,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle pnh("~");
   kalibr_image_geometry::CameraInfoPublisher cam_info_pub(pnh);
 
-  ros::NodeHandle cam_info_nh(pnh, "camera_info");
-  if (cam_info_pub.loadCameraInfoFromNamespace(cam_info_nh)) {
+  if (cam_info_pub.loadCameraInfoFromNamespace(pnh)) {
     cam_info_pub.latchCameraInfo();
   } else {
     ROS_ERROR_STREAM("Failed to load camera info.");
