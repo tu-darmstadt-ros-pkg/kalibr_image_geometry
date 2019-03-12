@@ -33,6 +33,7 @@ private:
   std::string name_;
   CameraModel model_;
   sensor_msgs::ImageConstPtr last_image_;
+  mutable cv_bridge::CvImageConstPtr last_image_cv_;
 
   ros::Subscriber camera_info_sub_;
   bool camera_info_received_;

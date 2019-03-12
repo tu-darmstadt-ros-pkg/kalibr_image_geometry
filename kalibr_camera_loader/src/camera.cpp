@@ -56,20 +56,24 @@ void Camera::cameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCameraInfoCo
 void Camera::imageCb(const sensor_msgs::ImageConstPtr& image)
 {
   last_image_ = image;
+  last_image_cv_.reset();
 }
 
 cv_bridge::CvImageConstPtr Camera::getLastImageCv() const
 {
-  cv_bridge::CvImageConstPtr last_image_cv;
-  try
-  {
-    last_image_cv = cv_bridge::toCvCopy(getLastImage(), "rgb8");
+  // Check if value was cached
+  if (!last_image_cv_) {
+    try
+    {
+      last_image_cv_ = cv_bridge::toCvCopy(getLastImage(), "rgb8");
+    }
+    catch(cv_bridge::Exception& e)
+    {
+      ROS_ERROR_STREAM("CV Bridge conversion failed: " << e.what());
+    }
   }
-  catch(cv_bridge::Exception& e)
-  {
-    ROS_ERROR_STREAM("CV Bridge conversion failed: " << e.what());
-  }
-  return last_image_cv;
+
+  return last_image_cv_;
 }
 
 std::string Camera::getName() const
