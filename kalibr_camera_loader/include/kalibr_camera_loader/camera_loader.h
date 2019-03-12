@@ -27,9 +27,9 @@ public:
   void startImageSubscribers();
   void stopImageSubscribers();
 
-  const std::vector<Camera>& cameras() const;
+  const std::vector<CameraPtr>& cameras() const;
 private:
-  std::vector<Camera> cameras_;
+  std::vector<CameraPtr> cameras_;
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
 };

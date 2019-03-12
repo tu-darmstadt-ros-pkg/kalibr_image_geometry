@@ -9,7 +9,8 @@ CameraLoader::CameraLoader(const ros::NodeHandle& nh, const ros::NodeHandle& pnh
   getParam(pnh, "cameras", camera_namespaces);
   for (const std::string& ns: camera_namespaces) {
     ROS_INFO_STREAM("Loading camera '" << ns << "'.");
-    cameras_.emplace_back(ns); // Construct camera in-place
+    CameraPtr camera = std::make_shared<Camera>(ns);
+    cameras_.push_back(camera);
   }
 }
 
@@ -27,9 +28,9 @@ bool CameraLoader::waitForCameraInfo(const ros::Duration& timeout) const
     ros::spinOnce();
   }
   // Failed to receive all infos
-  for (const Camera& camera: cameras_) {
-    if (!camera.cameraInfoReceived()) {
-      ROS_WARN_STREAM("Timed out waiting for camera info on topic '" << camera.getCameraNs() << "/extended_camera_info'");
+  for (const CameraPtr& camera: cameras_) {
+    if (!camera->cameraInfoReceived()) {
+      ROS_WARN_STREAM("Timed out waiting for camera info on topic '" << camera->getCameraNs() << "/extended_camera_info'");
     }
   }
 
@@ -38,8 +39,8 @@ bool CameraLoader::waitForCameraInfo(const ros::Duration& timeout) const
 
 bool CameraLoader::cameraInfosReceived() const
 {
-  for (const Camera& camera: cameras_) {
-    if (!camera.cameraInfoReceived()) {
+  for (const CameraPtr& camera: cameras_) {
+    if (!camera->cameraInfoReceived()) {
       return false;
     }
   }
@@ -48,19 +49,19 @@ bool CameraLoader::cameraInfosReceived() const
 
 void CameraLoader::startImageSubscribers()
 {
-  for (Camera& camera: cameras_) {
-    camera.startImageSubscriber();
+  for (CameraPtr& camera: cameras_) {
+    camera->startImageSubscriber();
   }
 }
 
 void CameraLoader::stopImageSubscribers()
 {
-  for (Camera& camera: cameras_) {
-    camera.stopImageSubscriber();
+  for (CameraPtr& camera: cameras_) {
+    camera->stopImageSubscriber();
   }
 }
 
-const std::vector<Camera>& CameraLoader::cameras() const
+const std::vector<CameraPtr>& CameraLoader::cameras() const
 {
   return cameras_;
 }
