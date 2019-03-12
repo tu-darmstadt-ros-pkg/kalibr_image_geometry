@@ -20,14 +20,7 @@ bool CameraLoader::waitForCameraInfo(const ros::Duration& timeout) const
   while (ros::ok() &&
          (ros::Time::now() < end || timeout.toSec() == 0.0)) {
     // Check if camera info of every cameras has been received
-    bool all_received = true;
-    for (const Camera& camera: cameras_) {
-      if (!camera.cameraInfoReceived()) {
-        all_received = false;
-        break;
-      }
-    }
-    if (all_received) {
+    if (cameraInfosReceived()) {
       return true;
     }
     rate.sleep();
@@ -41,6 +34,16 @@ bool CameraLoader::waitForCameraInfo(const ros::Duration& timeout) const
   }
 
   return false;
+}
+
+bool CameraLoader::cameraInfosReceived() const
+{
+  for (const Camera& camera: cameras_) {
+    if (!camera.cameraInfoReceived()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void CameraLoader::startImageSubscribers()
@@ -57,7 +60,7 @@ void CameraLoader::stopImageSubscribers()
   }
 }
 
-const std::vector<Camera>&CameraLoader::cameras() const
+const std::vector<Camera>& CameraLoader::cameras() const
 {
   return cameras_;
 }

@@ -40,6 +40,8 @@ private:
   image_transport::Subscriber image_sub_;
 };
 
+typedef std::shared_ptr<Camera> CameraPtr ;
+
 }
 
 #endif

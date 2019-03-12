@@ -29,6 +29,10 @@ bool CameraModel::isInitialized()
 
 bool CameraModel::worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const
 {
+  if (!camera_geometry_) {
+    ROS_ERROR_STREAM("Camera geometry has not been initialized yet.");
+    return false;
+  }
   Eigen::VectorXd pixel(2);
   if (camera_geometry_->vsEuclideanToKeypoint(point3d, pixel)) {
     pixel_out = Eigen::Vector2d(pixel(0), pixel(1));
@@ -54,6 +58,7 @@ Color CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& i
 
 std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info)
 {
+  ROS_INFO_STREAM("Creating camera geometry for '" << camera_info.camera_name << "'");
   // Load mask
   cv::Mat mask;
   if (!camera_info.mask.data.empty()) {

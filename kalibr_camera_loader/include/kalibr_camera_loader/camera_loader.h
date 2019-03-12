@@ -22,6 +22,8 @@ class CameraLoader {
 public:
   CameraLoader(const ros::NodeHandle& nh, const ros::NodeHandle& pnh);
   bool waitForCameraInfo(const ros::Duration& timeout = ros::Duration(0)) const;
+  bool cameraInfosReceived() const;
+
   void startImageSubscribers();
   void stopImageSubscribers();
 

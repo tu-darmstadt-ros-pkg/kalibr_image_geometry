@@ -6,7 +6,7 @@ Camera::Camera(const ros::NodeHandle& camera_nh)
   : camera_nh_(camera_nh), camera_info_received_(false), it_(camera_nh)
 {
   camera_info_sub_ = camera_nh_.subscribe("extended_camera_info", 10, &Camera::cameraInfoCb, this);
-  startImageSubscriber();
+//  startImageSubscriber();
 }
 
 bool Camera::waitForCameraInfo(const ros::Duration& timeout) const
@@ -45,10 +45,12 @@ std::string Camera::getCameraNs() const
 
 void Camera::cameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCameraInfoConstPtr& camera_info)
 {
+  ROS_INFO_STREAM("Received camera info; cam: " << camera_info->camera_name);
+  ROS_INFO_STREAM("cam info received: " << camera_info_received_);
   if (!cameraInfoReceived()) {
     model_.fromExtendedCameraInfo(*camera_info);
+    camera_info_received_ = true;
   }
-  camera_info_received_ = true;
 }
 
 void Camera::imageCb(const sensor_msgs::ImageConstPtr& image)
