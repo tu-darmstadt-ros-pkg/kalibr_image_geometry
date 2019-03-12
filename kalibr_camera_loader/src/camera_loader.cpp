@@ -6,9 +6,10 @@ CameraLoader::CameraLoader(const ros::NodeHandle& nh, const ros::NodeHandle& pnh
   : nh_(nh), pnh_(pnh)
 {
   std::vector<std::string> camera_namespaces;
-  getParam(pnh, "camera_namespaces", camera_namespaces);
+  getParam(pnh, "cameras", camera_namespaces);
   for (const std::string& ns: camera_namespaces) {
-    camera_namespaces.emplace_back(ns); // Construct camera in-place
+    ROS_INFO_STREAM("Loading camera '" << ns << "'.");
+    cameras_.emplace_back(ns); // Construct camera in-place
   }
 }
 
