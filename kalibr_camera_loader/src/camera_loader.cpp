@@ -17,7 +17,8 @@ bool CameraLoader::waitForCameraInfo(const ros::Duration& timeout) const
 {
   ros::Rate rate(10);
   ros::Time end = ros::Time::now() + timeout;
-  while (ros::Time::now() < end) {
+  while (ros::ok() &&
+         (ros::Time::now() < end || timeout.toSec() == 0.0)) {
     // Check if camera info of every cameras has been received
     bool all_received = true;
     for (const Camera& camera: cameras_) {
