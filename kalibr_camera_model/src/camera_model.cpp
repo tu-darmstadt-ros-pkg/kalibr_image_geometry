@@ -55,13 +55,18 @@ Color CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& i
 std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info)
 {
   // Load mask
-  cv_bridge::CvImagePtr cv_image_ptr;
-  try {
-    cv_image_ptr = cv_bridge::toCvCopy(camera_info.mask);
-  } catch (const cv_bridge::Exception& e) {
-    ROS_ERROR_STREAM("Converting of mask to cv failed: " << e.what());
+  cv::Mat mask;
+  if (!camera_info.mask.data.empty()) {
+    cv_bridge::CvImagePtr cv_image_ptr;
+    try {
+      cv_image_ptr = cv_bridge::toCvCopy(camera_info.mask);
+      mask = cv_image_ptr->image;
+    } catch (const cv_bridge::Exception& e) {
+      ROS_ERROR_STREAM("Converting of mask to cv failed: " << e.what());
+    }
   }
-  ImageMask image_mask(cv_image_ptr->image);
+
+  ImageMask image_mask(mask);
   GlobalShutter global_shutter;
 
   // Load projection model
