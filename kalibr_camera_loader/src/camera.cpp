@@ -60,7 +60,7 @@ void Camera::imageCb(const sensor_msgs::ImageConstPtr& image)
 cv_bridge::CvImageConstPtr Camera::getLastImageCv() const
 {
   // Check if value was cached
-  if (!last_image_cv_) {
+  if (!last_image_cv_ && last_image_) {
     try
     {
       last_image_cv_ = cv_bridge::toCvCopy(getLastImage(), "rgb8");
