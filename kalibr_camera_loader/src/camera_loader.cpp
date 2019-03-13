@@ -47,6 +47,39 @@ bool CameraLoader::cameraInfosReceived() const
   return true;
 }
 
+bool CameraLoader::waitForImages(const ros::Duration& timeout) const
+{
+  ros::Rate rate(10);
+  ros::Time end = ros::Time::now() + timeout;
+  while (ros::ok() &&
+         (ros::Time::now() < end || timeout.toSec() == 0.0)) {
+    // Check if an image has been received by each camera
+    if (imagesReceived()) {
+      return true;
+    }
+    rate.sleep();
+    ros::spinOnce();
+  }
+  // Failed to receive all infos
+  for (const CameraPtr& camera: cameras_) {
+    if (!camera->getLastImage()) {
+      ROS_WARN_STREAM("Timed out waiting for image on topic '" << camera->getCameraNs() << "/image_raw'");
+    }
+  }
+
+  return false;
+}
+
+bool CameraLoader::imagesReceived() const
+{
+  for (const CameraPtr& camera: cameras_) {
+    if (!camera->getLastImage()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void CameraLoader::startImageSubscribers()
 {
   for (CameraPtr& camera: cameras_) {

@@ -45,8 +45,6 @@ std::string Camera::getCameraNs() const
 
 void Camera::cameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCameraInfoConstPtr& camera_info)
 {
-  ROS_INFO_STREAM("Received camera info; cam: " << camera_info->camera_name);
-  ROS_INFO_STREAM("cam info received: " << camera_info_received_);
   if (!cameraInfoReceived()) {
     model_.fromExtendedCameraInfo(*camera_info);
     camera_info_received_ = true;

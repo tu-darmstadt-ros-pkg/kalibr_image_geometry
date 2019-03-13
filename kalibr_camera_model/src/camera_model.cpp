@@ -58,7 +58,6 @@ Color CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& i
 
 std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info)
 {
-  ROS_INFO_STREAM("Creating camera geometry for '" << camera_info.camera_name << "'");
   // Load mask
   cv::Mat mask;
   if (!camera_info.mask.data.empty()) {
