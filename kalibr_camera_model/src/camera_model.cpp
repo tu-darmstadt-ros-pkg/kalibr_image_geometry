@@ -1,7 +1,5 @@
 #include <kalibr_camera_model/camera_model.h>
 
-#include <cv_bridge/cv_bridge.h>
-
 namespace kalibr_image_geometry {
 
 CameraModel::CameraModel()
@@ -20,6 +18,44 @@ bool CameraModel::fromExtendedCameraInfo(const kalibr_image_geometry_msgs::Exten
 
   initialized_ = true;
   return true;
+}
+
+bool CameraModel::fromCameraInfo(const sensor_msgs::CameraInfo& camera_info)
+{
+  kalibr_image_geometry_msgs::ExtendedCameraInfo extended_camera_info;
+  extended_camera_info.header = camera_info.header;
+  extended_camera_info.camera_name = camera_info.header.frame_id;
+  extended_camera_info.resolution[0] = static_cast<int>(camera_info.width);
+  extended_camera_info.resolution[1] = static_cast<int>(camera_info.height);
+
+  // Camera model
+  extended_camera_info.camera_model = "pinhole";
+  extended_camera_info.intrinsics.resize(4);
+  extended_camera_info.intrinsics[0] = camera_info.K[0]; // fu
+  extended_camera_info.intrinsics[1] = camera_info.K[4]; // fv
+  extended_camera_info.intrinsics[2] = camera_info.K[2]; // pu
+  extended_camera_info.intrinsics[3] = camera_info.K[5]; // pv
+
+  // Distortion model
+  if (camera_info.distortion_model == "" || camera_info.distortion_model == "none") {
+    extended_camera_info.distortion_model = "none";
+  } else if (camera_info.distortion_model == "plumb_bob") {
+    bool zeros_or_empty = std::all_of(camera_info.D.begin(), camera_info.D.end(), [](int i) { return i==0; });
+    if (zeros_or_empty) {
+      extended_camera_info.distortion_model = "none";
+    } else {
+      if (camera_info.D.size() < 4) {
+        ROS_ERROR_STREAM("Invalid number of distortion coefficients.");
+        extended_camera_info.distortion_model = "none";
+      } else {
+        extended_camera_info.distortion_model = "radtan";
+        extended_camera_info.distortion_coeffs.resize(4);
+        std::copy(camera_info.D.begin(), camera_info.D.end(), extended_camera_info.distortion_coeffs.begin());
+      }
+    }
+  }
+
+  return fromExtendedCameraInfo(extended_camera_info);
 }
 
 bool CameraModel::isInitialized()
@@ -58,35 +94,19 @@ Color CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& i
 
 std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info)
 {
-  // Load mask
-  cv::Mat mask;
-  if (!camera_info.mask.data.empty()) {
-    cv_bridge::CvImagePtr cv_image_ptr;
-    try {
-      cv_image_ptr = cv_bridge::toCvCopy(camera_info.mask);
-      mask = cv_image_ptr->image;
-    } catch (const cv_bridge::Exception& e) {
-      ROS_ERROR_STREAM("Converting of mask to cv failed: " << e.what());
-    }
-  }
-
-  ImageMask image_mask(mask);
-  GlobalShutter global_shutter;
 
   // Load projection model
-  std::shared_ptr<CameraGeometryBase> camera_geometry;
   if (camera_info.distortion_model == "radtan") {
     RadialTangentialDistortion distortion(camera_info.distortion_coeffs[0], camera_info.distortion_coeffs[1],
                                           camera_info.distortion_coeffs[2], camera_info.distortion_coeffs[3]);
-    if (camera_info.camera_model == "omni") {
-      OmniProjection<RadialTangentialDistortion> projection(camera_info.intrinsics[0], camera_info.intrinsics[1], camera_info.intrinsics[2],
-                                                            camera_info.intrinsics[3], camera_info.intrinsics[4], camera_info.resolution[0],
-                                                            camera_info.resolution[1], distortion);
-      camera_geometry = std::make_shared<CameraGeometry<OmniProjection<RadialTangentialDistortion>, GlobalShutter, ImageMask>>(projection, global_shutter, image_mask);
-    }
+    return createCameraGeometry(camera_info, distortion);
+  } else if (camera_info.distortion_model == "none") {
+    NoDistortion distortion;
+    return createCameraGeometry(camera_info, distortion);
   }
-
-  return camera_geometry;
+  // Unknown distortion model
+  ROS_ERROR_STREAM("Unknown distortion model '" << camera_info.distortion_model << "'");
+  return std::shared_ptr<CameraGeometryBase>();
 }
 
 cv::Vec3b CameraModel::interpolate(const cv::Mat& img, const Eigen::Vector2d& pixel) const
