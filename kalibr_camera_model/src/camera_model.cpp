@@ -25,6 +25,7 @@ bool CameraModel::fromCameraInfo(const sensor_msgs::CameraInfo& camera_info)
   kalibr_image_geometry_msgs::ExtendedCameraInfo extended_camera_info;
   extended_camera_info.header = camera_info.header;
   extended_camera_info.camera_name = camera_info.header.frame_id;
+  extended_camera_info.resolution.resize(2);
   extended_camera_info.resolution[0] = static_cast<int>(camera_info.width);
   extended_camera_info.resolution[1] = static_cast<int>(camera_info.height);
 
