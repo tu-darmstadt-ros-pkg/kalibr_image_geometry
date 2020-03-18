@@ -5,7 +5,9 @@ namespace kalibr_image_geometry {
 Camera::Camera(const ros::NodeHandle& camera_nh)
   : camera_nh_(camera_nh), camera_info_received_(false), it_(camera_nh)
 {
-  camera_info_sub_ = camera_nh_.subscribe("extended_camera_info", 10, &Camera::cameraInfoCb, this);
+  extended_camera_info_sub_ = camera_nh_.subscribe("extended_camera_info", 10, &Camera::extendedCameraInfoCb, this);
+  camera_info_sub_ = camera_nh_.subscribe("camera_info", 10, &Camera::cameraInfoCb, this);
+
 //  startImageSubscriber();
 }
 
@@ -43,10 +45,18 @@ std::string Camera::getCameraNs() const
   return camera_nh_.getNamespace();
 }
 
-void Camera::cameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCameraInfoConstPtr& camera_info)
+void Camera::extendedCameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCameraInfoConstPtr& camera_info)
 {
   if (!cameraInfoReceived()) {
     model_.fromExtendedCameraInfo(*camera_info);
+    camera_info_received_ = true;
+  }
+}
+
+void Camera::cameraInfoCb(const sensor_msgs::CameraInfo& camera_info)
+{
+  if (!cameraInfoReceived()) {
+    model_.fromCameraInfo(camera_info);
     camera_info_received_ = true;
   }
 }

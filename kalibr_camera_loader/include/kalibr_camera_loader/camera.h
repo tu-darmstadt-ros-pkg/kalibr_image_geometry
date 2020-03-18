@@ -3,6 +3,7 @@
 
 #include <kalibr_camera_model/camera_model.h>
 #include <kalibr_image_geometry_msgs/ExtendedCameraInfo.h>
+#include <sensor_msgs/CameraInfo.h>
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
@@ -26,7 +27,8 @@ public:
   const CameraModel& model() const;
 
 private:
-  void cameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCameraInfoConstPtr& camera_info);
+  void extendedCameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCameraInfoConstPtr& camera_info);
+  void cameraInfoCb(const sensor_msgs::CameraInfo& camera_info);
   void imageCb(const sensor_msgs::ImageConstPtr& image);
 
   ros::NodeHandle camera_nh_;
@@ -35,6 +37,7 @@ private:
   sensor_msgs::ImageConstPtr last_image_;
   mutable cv_bridge::CvImageConstPtr last_image_cv_;
 
+  ros::Subscriber extended_camera_info_sub_;
   ros::Subscriber camera_info_sub_;
   bool camera_info_received_;
   image_transport::ImageTransport it_;
