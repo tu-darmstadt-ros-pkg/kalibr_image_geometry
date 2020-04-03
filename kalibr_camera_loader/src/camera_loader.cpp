@@ -9,7 +9,8 @@ CameraLoader::CameraLoader(const ros::NodeHandle& nh, const ros::NodeHandle& pnh
   getParam(pnh, "cameras", camera_namespaces);
   for (const std::string& ns: camera_namespaces) {
     ROS_INFO_STREAM("Loading camera '" << ns << "'.");
-    CameraPtr camera = std::make_shared<Camera>(ns);
+    ros::NodeHandle camera_nh(nh, ns);
+    CameraPtr camera = std::make_shared<Camera>(camera_nh);
     cameras_.push_back(camera);
   }
 }
