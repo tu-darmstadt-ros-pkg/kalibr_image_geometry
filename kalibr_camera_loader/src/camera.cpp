@@ -3,7 +3,7 @@
 namespace kalibr_image_geometry {
 
 Camera::Camera(const ros::NodeHandle& camera_nh)
-  : camera_nh_(camera_nh), camera_info_received_(false), it_(camera_nh)
+  : camera_nh_(camera_nh), camera_info_received_(false), extended_camera_info_received_(false), it_(camera_nh)
 {
   extended_camera_info_sub_ = camera_nh_.subscribe("extended_camera_info", 10, &Camera::extendedCameraInfoCb, this);
   camera_info_sub_ = camera_nh_.subscribe("camera_info", 10, &Camera::cameraInfoCb, this);
@@ -27,7 +27,7 @@ bool Camera::waitForCameraInfo(const ros::Duration& timeout) const
 
 bool Camera::cameraInfoReceived() const
 {
-  return camera_info_received_;
+  return camera_info_received_ || extended_camera_info_received_;
 }
 
 void Camera::startImageSubscriber()
@@ -49,7 +49,10 @@ void Camera::extendedCameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCame
 {
   if (!cameraInfoReceived()) {
     model_.fromExtendedCameraInfo(*camera_info);
-    camera_info_received_ = true;
+    extended_camera_info_received_ = true;
+  } else if (camera_info_received_) {
+    ROS_WARN_THROTTLE(1, "Received extended camera info, after camera model has been initialized with standard camera info. This indicates a race condition! "
+                         "Do not publish on extended_camera_info and camera_info at the same time. This message is throttled (1s).");
   }
 }
 
@@ -58,6 +61,9 @@ void Camera::cameraInfoCb(const sensor_msgs::CameraInfo& camera_info)
   if (!cameraInfoReceived()) {
     model_.fromCameraInfo(camera_info);
     camera_info_received_ = true;
+  } else if (extended_camera_info_received_) {
+    ROS_WARN_THROTTLE(1, "Received standard camera info, after camera model has been initialized with extended camera info. This indicates a race condition! "
+                         "Do not publish on extended_camera_info and camera_info at the same time. This message is throttled (1s).");
   }
 }
 

@@ -40,6 +40,7 @@ private:
   ros::Subscriber extended_camera_info_sub_;
   ros::Subscriber camera_info_sub_;
   bool camera_info_received_;
+  bool extended_camera_info_received_;
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
 };
