@@ -32,6 +32,10 @@ private:
   void imageCb(const sensor_msgs::ImageConstPtr& image);
 
   ros::NodeHandle camera_nh_;
+  std::string image_topic_;
+  std::string camera_info_topic_;
+  std::string extended_camera_info_topic_;
+
   std::string name_;
   CameraModel model_;
   sensor_msgs::ImageConstPtr last_image_;

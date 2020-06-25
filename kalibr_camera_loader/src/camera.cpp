@@ -5,10 +5,14 @@ namespace kalibr_image_geometry {
 Camera::Camera(const ros::NodeHandle& camera_nh)
   : camera_nh_(camera_nh), camera_info_received_(false), extended_camera_info_received_(false), it_(camera_nh)
 {
-  extended_camera_info_sub_ = camera_nh_.subscribe("extended_camera_info", 10, &Camera::extendedCameraInfoCb, this);
-  camera_info_sub_ = camera_nh_.subscribe("camera_info", 10, &Camera::cameraInfoCb, this);
+  // Load parameters
+  camera_nh_.param<std::string>("image_topic", image_topic_, "image_raw");
+  camera_nh_.param<std::string>("camera_info_topic", camera_info_topic_, "camera_info");
+  camera_nh_.param<std::string>("extended_camera_info_topic", extended_camera_info_topic_, "extended_camera_info");
 
-//  startImageSubscriber();
+  // Subscribers
+  extended_camera_info_sub_ = camera_nh_.subscribe(extended_camera_info_topic_, 10, &Camera::extendedCameraInfoCb, this);
+  camera_info_sub_ = camera_nh_.subscribe(camera_info_topic_, 10, &Camera::cameraInfoCb, this);
 }
 
 bool Camera::waitForCameraInfo(const ros::Duration& timeout) const
@@ -32,7 +36,7 @@ bool Camera::cameraInfoReceived() const
 
 void Camera::startImageSubscriber()
 {
-  image_sub_ = it_.subscribe("image_raw", 10, &Camera::imageCb, this);
+  image_sub_ = it_.subscribe(image_topic_, 10, &Camera::imageCb, this);
 }
 
 void Camera::stopImageSubscriber()

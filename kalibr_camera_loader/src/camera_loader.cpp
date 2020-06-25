@@ -5,14 +5,20 @@ namespace kalibr_image_geometry {
 CameraLoader::CameraLoader(const ros::NodeHandle& nh, const ros::NodeHandle& pnh)
   : nh_(nh), pnh_(pnh)
 {
+  loadCameras(pnh_);
+}
+
+bool CameraLoader::loadCameras(ros::NodeHandle& nh)
+{
   std::vector<std::string> camera_namespaces;
-  getParam(pnh, "cameras", camera_namespaces);
+  getParam(nh, "cameras", camera_namespaces);
   for (const std::string& ns: camera_namespaces) {
     ROS_INFO_STREAM("Loading camera '" << ns << "'.");
     ros::NodeHandle camera_nh(nh, ns);
     CameraPtr camera = std::make_shared<Camera>(camera_nh);
     cameras_.push_back(camera);
   }
+  return true;
 }
 
 bool CameraLoader::waitForCameraInfo(const ros::Duration& timeout) const

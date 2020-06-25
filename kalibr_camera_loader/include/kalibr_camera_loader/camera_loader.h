@@ -21,6 +21,7 @@ namespace kalibr_image_geometry {
 class CameraLoader {
 public:
   CameraLoader(const ros::NodeHandle& nh, const ros::NodeHandle& pnh);
+  bool loadCameras(ros::NodeHandle& nh);
   bool waitForCameraInfo(const ros::Duration& timeout = ros::Duration(0)) const;
   bool cameraInfosReceived() const;
   bool waitForImages(const ros::Duration& timeout = ros::Duration(0)) const;
