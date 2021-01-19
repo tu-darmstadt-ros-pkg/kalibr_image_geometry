@@ -63,8 +63,8 @@ void Camera::extendedCameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCame
 void Camera::cameraInfoCb(const sensor_msgs::CameraInfo& camera_info)
 {
   if (!cameraInfoReceived()) {
-    model_.fromCameraInfo(camera_info);
     camera_info_received_ = true;
+    model_.fromCameraInfo(camera_info);
   } else if (extended_camera_info_received_) {
     ROS_WARN_THROTTLE(1, "Received standard camera info, after camera model has been initialized with extended camera info. This indicates a race condition! "
                          "Do not publish on extended_camera_info and camera_info at the same time. This message is throttled (1s).");
