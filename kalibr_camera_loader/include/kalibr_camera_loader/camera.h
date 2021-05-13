@@ -35,6 +35,8 @@ private:
   std::string image_topic_;
   std::string camera_info_topic_;
   std::string extended_camera_info_topic_;
+  std::string mask_path_;
+  sensor_msgs::Image mask_msg_;
 
   std::string name_;
   CameraModel model_;

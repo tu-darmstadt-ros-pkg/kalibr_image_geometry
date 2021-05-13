@@ -26,7 +26,7 @@ class CameraModel {
 public:
   CameraModel();
   bool fromExtendedCameraInfo(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info);
-  bool fromCameraInfo(const sensor_msgs::CameraInfo& camera_info);
+  bool fromCameraInfo(const sensor_msgs::CameraInfo& camera_info, const sensor_msgs::Image& mask=sensor_msgs::Image());
   bool isInitialized();
 
   bool worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const;

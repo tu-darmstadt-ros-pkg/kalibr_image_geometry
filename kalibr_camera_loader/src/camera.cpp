@@ -1,4 +1,5 @@
 #include <kalibr_camera_loader/camera.h>
+#include <opencv2/highgui.hpp>
 
 namespace kalibr_image_geometry {
 
@@ -9,6 +10,20 @@ Camera::Camera(const ros::NodeHandle& camera_nh)
   camera_nh_.param<std::string>("image_topic", image_topic_, "image_raw");
   camera_nh_.param<std::string>("camera_info_topic", camera_info_topic_, "camera_info");
   camera_nh_.param<std::string>("extended_camera_info_topic", extended_camera_info_topic_, "extended_camera_info");
+  camera_nh_.param<std::string>("mask", mask_path_, "");
+
+  // Load mask, if available
+  if (!mask_path_.empty()) {
+    cv::Mat mask = cv::imread(mask_path_, cv::IMREAD_GRAYSCALE);
+    if (mask.empty()) {
+      ROS_ERROR_STREAM("Failed to load mask from '" << mask_path_ << "'.");
+    } else {
+      cv_bridge::CvImage cv_image;
+      cv_image.encoding = sensor_msgs::image_encodings::MONO8;
+      cv_image.image = mask;
+      cv_image.toImageMsg(mask_msg_);
+    }
+  }
 
   // Subscribers
   extended_camera_info_sub_ = camera_nh_.subscribe(extended_camera_info_topic_, 10, &Camera::extendedCameraInfoCb, this);
@@ -64,7 +79,7 @@ void Camera::cameraInfoCb(const sensor_msgs::CameraInfo& camera_info)
 {
   if (!cameraInfoReceived()) {
     camera_info_received_ = true;
-    model_.fromCameraInfo(camera_info);
+    model_.fromCameraInfo(camera_info, mask_msg_);
   } else if (extended_camera_info_received_) {
     ROS_WARN_THROTTLE(1, "Received standard camera info, after camera model has been initialized with extended camera info. This indicates a race condition! "
                          "Do not publish on extended_camera_info and camera_info at the same time. This message is throttled (1s).");

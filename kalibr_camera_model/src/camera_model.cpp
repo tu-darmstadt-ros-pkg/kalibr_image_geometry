@@ -20,7 +20,7 @@ bool CameraModel::fromExtendedCameraInfo(const kalibr_image_geometry_msgs::Exten
   return true;
 }
 
-bool CameraModel::fromCameraInfo(const sensor_msgs::CameraInfo& camera_info)
+bool CameraModel::fromCameraInfo(const sensor_msgs::CameraInfo& camera_info, const sensor_msgs::Image& mask)
 {
   kalibr_image_geometry_msgs::ExtendedCameraInfo extended_camera_info;
   extended_camera_info.header = camera_info.header;
@@ -39,7 +39,7 @@ bool CameraModel::fromCameraInfo(const sensor_msgs::CameraInfo& camera_info)
   extended_camera_info.intrinsics[3] = camera_info.K[5]; // pv
 
   // Distortion model
-  if (camera_info.distortion_model == "" || camera_info.distortion_model == "none") {
+  if (camera_info.distortion_model.empty() || camera_info.distortion_model == "none") {
     extended_camera_info.distortion_model = "none";
   } else if (camera_info.distortion_model == "plumb_bob") {
     bool zeros_or_empty = std::all_of(camera_info.D.begin(), camera_info.D.end(), [](int i) { return i==0; });
@@ -56,6 +56,9 @@ bool CameraModel::fromCameraInfo(const sensor_msgs::CameraInfo& camera_info)
       }
     }
   }
+
+  // Mask
+  extended_camera_info.mask = mask;
 
   return fromExtendedCameraInfo(extended_camera_info);
 }
