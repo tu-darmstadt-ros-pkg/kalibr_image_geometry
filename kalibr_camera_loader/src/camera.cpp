@@ -68,7 +68,14 @@ void Camera::extendedCameraInfoCb(const kalibr_image_geometry_msgs::ExtendedCame
 {
   if (!cameraInfoReceived()) {
     extended_camera_info_received_ = true;
-    model_.fromExtendedCameraInfo(*camera_info);
+    // Overwrite mask if one was set manually
+    if (!mask_msg_.data.empty()) {
+      kalibr_image_geometry_msgs::ExtendedCameraInfo info_copy = *camera_info;
+      info_copy.mask = mask_msg_;
+      model_.fromExtendedCameraInfo(info_copy);
+    } else {
+      model_.fromExtendedCameraInfo(*camera_info);
+    }
   } else if (camera_info_received_) {
     ROS_WARN_THROTTLE(1, "Received extended camera info, after camera model has been initialized with standard camera info. This indicates a race condition! "
                          "Do not publish on extended_camera_info and camera_info at the same time. This message is throttled (1s).");
