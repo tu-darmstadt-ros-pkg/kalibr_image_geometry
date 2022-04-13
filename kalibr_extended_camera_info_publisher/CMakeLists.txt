@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(kalibr_extended_camera_info_publisher)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
