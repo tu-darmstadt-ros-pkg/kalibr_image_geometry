@@ -2,10 +2,10 @@
 #define KALIBR_CAMERA_MODEL_CAMERA_MODEL_H
 
 #include <ros/ros.h>
-#include <kalibr_image_geometry_msgs/ExtendedCameraInfo.h>
+#include <extended_image_geometry_msgs/ExtendedCameraInfo.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <eigen3/Eigen/Eigen>
-#include <aslam/cameras.hpp>
+
 #include <cv_bridge/cv_bridge.h>
 
 using namespace aslam::cameras;

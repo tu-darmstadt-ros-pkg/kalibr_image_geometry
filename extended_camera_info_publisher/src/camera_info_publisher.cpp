@@ -5,15 +5,17 @@
 
 namespace kalibr_image_geometry {
 
-CameraInfoPublisher::CameraInfoPublisher(const ros::NodeHandle& pnh)
-  : pnh_(pnh)
-{}
+CameraInfoPublisher::CameraInfoPublisher()
+  : Node("extended_camera_info_publisher")
+  {
+  rcl_interfaces::msg::ParameterDescriptor camera_ns_options;
+  camera_ns_options.description = "Namespace of the camera in which the camera info will be published";
+  camera_ns_options.read_only = true;
+  camera_ns_ = declare_parameter("camera_ns", "", camera_ns_options);
+}
 
-bool CameraInfoPublisher::loadCameraInfoFromNamespace(const ros::NodeHandle& nh)
+bool CameraInfoPublisher::loadCameraInfoFromYAML(const std::string& file_name)
 {
-  nh.param("camera_ns", camera_ns_, std::string(""));
-  camera_nh_ = ros::NodeHandle(camera_ns_);
-
   camera_info_ = kalibr_image_geometry_msgs::ExtendedCameraInfo();
 
   bool success = true;

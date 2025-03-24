@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>extended_camera_model</name>
+  <version>0.0.0</version>
+  <description>Camera model with support for various projection and distortion models.</description>
+
+  <maintainer email="oehler@sim.tu-darmstadt.de">Martin Oehler</maintainer>
+  <author email="oehler@sim.tu-darmstadt.de">Martin Oehler</author>
+
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>extended_image_geometry_msgs</depend>
+  <depend>eigen</depend>
+
+  <export>
+      <build_type>ament_cmake</build_type>
+  </export>
+</package>
