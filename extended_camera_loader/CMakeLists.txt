@@ -1,47 +1,44 @@
 cmake_minimum_required(VERSION 3.8)
-project(extended_camera_model)
+project(extended_camera_loader)
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+## Compile as C++11, supported in ROS Kinetic and newer
+# add_compile_options(-std=c++11)
 
-# Default to C++17
-if (NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif ()
-
-if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic)
-endif ()
-
-# Find dependencies
+## Find catkin macros and libraries
+## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+## is used, also find other catkin packages
 find_package(ament_cmake REQUIRED)
 find_package(Eigen3 REQUIRED)
 set(DEPENDENCIES
-    rclcpp
-    cv_bridge
-    image_transport
-    extended_image_geometry_msgs
+  rclcpp
+  image_transport
+  extended_camera_model
 )
 foreach(Dependency IN ITEMS ${DEPENDENCIES})
-    find_package(${Dependency} REQUIRED)
+  find_package(${Dependency} REQUIRED)
 endforeach()
 
-file(GLOB CAMERA_HEADERS "include/${PROJECT_NAME}/cameras/*.h")
-# Library
+
+## Declare a C++ library
 add_library(${PROJECT_NAME} SHARED
-    include/${PROJECT_NAME}/camera_model.h
-    include/${PROJECT_NAME}/cameras.h
-    src/camera_model.cpp
+  include/${PROJECT_NAME}/camera_loader.h
+  include/${PROJECT_NAME}/camera.h
+  src/camera_loader.cpp
+  src/camera.cpp
 )
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-        "$<INSTALL_INTERFACE:include>")
+        "$<INSTALL_INTERFACE:include>"
+        )
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 ament_target_dependencies(${PROJECT_NAME} PUBLIC ${DEPENDENCIES})
 
-# Install
+# Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME} EXPORT export_${PROJECT_NAME} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib RUNTIME DESTINATION bin)
 install(DIRECTORY include/ DESTINATION include)
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${DEPENDENCIES})
+ament_export_dependencies(${DEPENDENCIES} Eigen3)
+
 ament_package()

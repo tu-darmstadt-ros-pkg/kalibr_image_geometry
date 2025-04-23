@@ -1,39 +1,54 @@
-#include <kalibr_extended_camera_info_publisher/camera_info_publisher.h>
+#include <extended_camera_info_publisher/camera_info_publisher.h>
 
 #include <opencv2/highgui.hpp>
-#include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
-namespace kalibr_image_geometry {
+namespace extended_image_geometry {
 
-CameraInfoPublisher::CameraInfoPublisher()
-  : Node("extended_camera_info_publisher")
+CameraInfoPublisher::CameraInfoPublisher(const rclcpp::NodeOptions& options)
+  : Node("extended_camera_info_publisher", options)
   {
   rcl_interfaces::msg::ParameterDescriptor camera_ns_options;
   camera_ns_options.description = "Namespace of the camera in which the camera info will be published";
   camera_ns_options.read_only = true;
   camera_ns_ = declare_parameter("camera_ns", "", camera_ns_options);
+
+  declare_parameter("camera_name", "camera");
+  declare_parameter("resolution", std::vector<int32_t>{640, 480});
+  declare_parameter("frame_id", "camera_frame");
+  declare_parameter("camera_model", "pinhole");
+  declare_parameter("intrinsics", std::vector<double>{0.0, 0.0, 0.0, 0.0});
+  declare_parameter("distortion_model", "none");
+  declare_parameter("distortion_coeffs", std::vector<double>{0.0, 0.0, 0.0, 0.0});
+  declare_parameter("mask_path", "");
 }
 
-bool CameraInfoPublisher::loadCameraInfoFromYAML(const std::string& file_name)
+bool CameraInfoPublisher::loadCameraInfoFromParam()
 {
-  camera_info_ = kalibr_image_geometry_msgs::ExtendedCameraInfo();
+  camera_info_ = extended_image_geometry_msgs::msg::ExtendedCameraInfo();
 
   bool success = true;
-  success = success && getParam<std::string>(nh, "camera_name", camera_info_.camera_name);
-  success = success && getParam<std::vector<int>>(nh, "resolution", camera_info_.resolution);
-  success = success && getParam<std::string>(nh, "frame_id", camera_info_.frame_id);
+  success = success && get_parameter("camera_name", camera_info_.camera_name);
+  std::vector<int64_t> resolution_64;
+  success = success && get_parameter("resolution", resolution_64);
+  std::vector<int> resolution_32(resolution_64.begin(), resolution_64.end());
+  camera_info_.resolution = resolution_32;
+  success = success && get_parameter("frame_id", camera_info_.frame_id);
   camera_info_.header.frame_id = camera_info_.frame_id;
-  success = success && getParam<std::string>(nh, "camera_model", camera_info_.camera_model);
-  success = success && getParam<std::vector<double>>(nh, "intrinsics", camera_info_.intrinsics);
-  success = success && getParam<std::string>(nh, "distortion_model", camera_info_.distortion_model);
-  success = success && getParam<std::vector<double>>(nh, "distortion_coeffs", camera_info_.distortion_coeffs);
+  success = success && get_parameter("camera_model", camera_info_.camera_model);
+  success = success && get_parameter("intrinsics", camera_info_.intrinsics);
+  success = success && get_parameter("distortion_model", camera_info_.distortion_model);
+  success = success && get_parameter("distortion_coeffs", camera_info_.distortion_coeffs);
+
+
 
   // Load mask
   std::string mask_path;
-  if (nh.getParam("mask_path", mask_path)) {
+  if (get_parameter("mask_path", mask_path)) {
     cv::Mat mask = cv::imread(mask_path, cv::IMREAD_GRAYSCALE);
     if (mask.empty()) {
-      ROS_ERROR_STREAM("Failed to load mask from '" << mask_path << "'.");
+      RCLCPP_ERROR_STREAM(get_logger(), "Failed to load mask from '" << mask_path << "'.");
     } else {
       cv_bridge::CvImage cv_image;
       cv_image.encoding = "mono8";
@@ -43,15 +58,18 @@ bool CameraInfoPublisher::loadCameraInfoFromYAML(const std::string& file_name)
   }
 
   if (success) {
-    cam_info_pub_ = camera_nh_.advertise<kalibr_image_geometry_msgs::ExtendedCameraInfo>("extended_camera_info", 10, true);
+    rclcpp::QoS qos_profile(10);
+    qos_profile.transient_local();
+    cam_info_pub_ = create_publisher<extended_image_geometry_msgs::msg::ExtendedCameraInfo>("extended_camera_info", qos_profile);
   }
 
   return success;
 }
 
-void CameraInfoPublisher::latchCameraInfo()
-{
-  cam_info_pub_.publish(camera_info_);
+void CameraInfoPublisher::latchCameraInfo() {
+  cam_info_pub_->publish(camera_info_);
 }
 
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(extended_image_geometry::CameraInfoPublisher)

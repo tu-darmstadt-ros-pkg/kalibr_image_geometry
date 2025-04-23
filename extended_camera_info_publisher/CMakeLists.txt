@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(kalibr_extended_camera_info_publisher)
+project(extended_camera_info_publisher)
 
 # Default to C++17
 if (NOT CMAKE_CXX_STANDARD)
@@ -15,6 +15,7 @@ endif ()
 find_package(ament_cmake REQUIRED)
 set(DEPENDENCIES
     rclcpp
+    rclcpp_components
     extended_image_geometry_msgs
     cv_bridge
 )
@@ -34,8 +35,13 @@ target_include_directories(${PROJECT_NAME}
         )
 ament_target_dependencies(${PROJECT_NAME} PUBLIC ${DEPENDENCIES})
 
+add_executable(${PROJECT_NAME}_node src/camera_info_publisher_node.cpp)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
+
+
 # Install
-install(TARGETS ${PROJECT_NAME} EXPORT export_${PROJECT_NAME} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib RUNTIME DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+ EXPORT export_${PROJECT_NAME} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib RUNTIME DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY include/ DESTINATION include)
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
