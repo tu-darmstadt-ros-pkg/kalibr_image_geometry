@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<package format="2">
-  <name>kalibr_camera_loader</name>
+<package format="3">
+  <name>extended_camera_loader</name>
   <version>0.0.0</version>
-  <description>The kalibr_camera_loader package</description>
+  <description>The extended_camera_loader package</description>
 
   <maintainer email="oehler@sim.tu-darmstadt.de">Martin Oehler</maintainer>
 
@@ -22,13 +22,13 @@
 
 
   <!-- The *depend tags are used to specify dependencies -->
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>kalibr_camera_model</depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>extended_camera_model</depend>
   <depend>image_transport</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
