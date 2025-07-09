@@ -65,6 +65,15 @@ private:
       PinholeProjection<T> projection(camera_info->intrinsics[0], camera_info->intrinsics[1], camera_info->intrinsics[2], camera_info->intrinsics[3],
           camera_info->resolution[0], camera_info->resolution[1], distortion);
       return std::make_shared<CameraGeometry<PinholeProjection<T>, GlobalShutter, ImageMask>>(projection, global_shutter, image_mask);
+    } else if (camera_info->camera_model == "eucm") {
+      ExtendedUnifiedProjection<T> projection(camera_info->intrinsics[0], camera_info->intrinsics[1], camera_info->intrinsics[2],
+          camera_info->intrinsics[3], camera_info->intrinsics[4], camera_info->intrinsics[5], 
+          camera_info->resolution[0], camera_info->resolution[1], distortion);
+      return std::make_shared<CameraGeometry<ExtendedUnifiedProjection<T>, GlobalShutter, ImageMask>>(projection, global_shutter, image_mask);
+    } else if (camera_info->camera_model == "ds") {
+      DoubleSphereProjection<T> projection(camera_info->intrinsics[0], camera_info->intrinsics[1], camera_info->intrinsics[2],
+          camera_info->intrinsics[3], camera_info->intrinsics[4], camera_info->intrinsics[5], camera_info->resolution[0], camera_info->resolution[1], distortion);
+      return std::make_shared<CameraGeometry<DoubleSphereProjection<T>, GlobalShutter, ImageMask>>(projection, global_shutter, image_mask);
     }
     // Unknown camera model
     RCLCPP_ERROR_STREAM(rclcpp::get_logger("Camera Model"), "Unknown camera model '" << camera_info->camera_model << "'");

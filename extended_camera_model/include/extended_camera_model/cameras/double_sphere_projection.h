@@ -11,14 +11,14 @@ namespace extended_image_geometry {
 namespace cameras {
 
 template<typename DISTORTION_TYPE>
-class DoubleSphere {
+class DoubleSphereProjection {
   public:
 
     enum {
       KeypointDimension = 2
     };
 
-  DoubleSphere(double xi, double alpha, double fu, double fv, double cu, double cv, int ru, int rv, const DISTORTION_TYPE& distortion)
+  DoubleSphereProjection(double xi, double alpha, double fu, double fv, double cu, double cv, int ru, int rv, const DISTORTION_TYPE& distortion)
     : xi_(xi), alpha_(alpha), fu_(fu), fv_(fv), cu_(cu), cv_(cv), ru_(ru), rv_(rv), distortion_(distortion) {
       updateTemporaries();
     }
