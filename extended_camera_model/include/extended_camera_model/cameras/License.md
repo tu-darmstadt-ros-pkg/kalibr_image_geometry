@@ -1,4 +1,4 @@
-The files in this folder (cameras) are based on the kalibr framework (https://github.com/ethz-asl/kalibr/tree/master) and have been rewritten to be compatible with ros2. Below is the original license
+The files in this folder (cameras) are based on the kalibr framework (https://github.com/ethz-asl/kalibr/tree/master) and have been rewritten to be compatible with ros2. Below is the original license which holds for them
 
 
 ## License (BSD)

@@ -8,6 +8,9 @@
 #include <extended_camera_model/cameras/no_distortion.h>
 #include <extended_camera_model/cameras/omni_projection.h>
 #include <extended_camera_model/cameras/pinhole_projection.h>
+#include <extended_camera_model/cameras/double_sphere.h>
+#include <extended_camera_model/cameras/extended_unified_projection.h>
+
 #include <extended_camera_model/cameras/radial_tangential_distortion.h>
 
 #endif // EXTENDED_CAMERA_MODEL_CAMERAS_H
