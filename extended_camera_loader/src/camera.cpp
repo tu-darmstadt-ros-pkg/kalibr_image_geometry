@@ -79,8 +79,8 @@ std::string Camera::getCameraNs() const
 
 void Camera::extendedCameraInfoCb(const extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr camera_info)
 {
+  std::unique_lock lock(camera_info_mutex_);
   if (!cameraInfoReceived()) {
-    extended_camera_info_received_ = true;
     // Overwrite mask if one was set manually
     if (!mask_msg_->data.empty()) {
       extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr info_copy(camera_info);
@@ -89,6 +89,7 @@ void Camera::extendedCameraInfoCb(const extended_image_geometry_msgs::msg::Exten
     } else {
       model_.fromExtendedCameraInfo(camera_info);
     }
+    extended_camera_info_received_ = true;
   } else if (camera_info_received_) {
     RCLCPP_WARN_THROTTLE(node_->get_logger(), *(node_->get_clock()), 1000, "Received extended camera info, after camera model has been initialized with standard camera info. This indicates a race condition! "
                          "Do not publish on extended_camera_info and camera_info at the same time. This message is throttled (1s).");
@@ -97,9 +98,10 @@ void Camera::extendedCameraInfoCb(const extended_image_geometry_msgs::msg::Exten
 
 void Camera::cameraInfoCb(const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
 {
+  std::unique_lock lock(camera_info_mutex_);
   if (!cameraInfoReceived()) {
-    camera_info_received_ = true;
     model_.fromCameraInfo(camera_info, mask_msg_);
+    camera_info_received_ = true;
   } else if (extended_camera_info_received_) {
     RCLCPP_WARN_THROTTLE(node_->get_logger(), *(node_->get_clock()), 1000, "Received standard camera info, after camera model has been initialized with extended camera info. This indicates a race condition! "
                          "Do not publish on extended_camera_info and camera_info at the same time. This message is throttled (1s).");
@@ -131,6 +133,10 @@ cv_bridge::CvImageConstPtr Camera::getLastImageCv() const
 
 std::string Camera::getName() const
 {
+  if (!model_.cameraInfo()) {
+    RCLCPP_ERROR(node_->get_logger(), "Camera model is not initialized, cannot get camera name.");
+    return "";
+  }
   return model().cameraInfo()->camera_name;
 }
 
