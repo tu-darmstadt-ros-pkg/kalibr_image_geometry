@@ -22,6 +22,7 @@ CameraInfoPublisher::CameraInfoPublisher(const rclcpp::NodeOptions& options)
   declare_parameter("distortion_model", "none");
   declare_parameter("distortion_coeffs", std::vector<double>{0.0, 0.0, 0.0, 0.0});
   declare_parameter("mask_path", "");
+  declare_parameter("rate", 0.0);
 }
 
 bool CameraInfoPublisher::loadCameraInfoFromParam()
@@ -41,7 +42,13 @@ bool CameraInfoPublisher::loadCameraInfoFromParam()
   success = success && get_parameter("distortion_model", camera_info_.distortion_model);
   success = success && get_parameter("distortion_coeffs", camera_info_.distortion_coeffs);
 
-
+  double rate;
+  get_parameter_or("rate", rate, 0.0);
+  if (rate > 0.0) {
+    timer_ = create_wall_timer(std::chrono::duration<double>(1.0 / rate), [this]() {
+      cam_info_pub_->publish(camera_info_);
+    });
+  }
 
   // Load mask
   std::string mask_path;

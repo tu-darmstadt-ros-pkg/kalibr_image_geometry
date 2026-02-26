@@ -15,6 +15,7 @@ private:
   std::string camera_ns_;
   extended_image_geometry_msgs::msg::ExtendedCameraInfo camera_info_;
   rclcpp::Publisher<extended_image_geometry_msgs::msg::ExtendedCameraInfo>::SharedPtr cam_info_pub_;
+  rclcpp::TimerBase::SharedPtr timer_;
 };
 
 }
