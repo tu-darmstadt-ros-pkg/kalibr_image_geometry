@@ -13,11 +13,22 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
     {"camera_info_topic", "camera_info"},
     {"extended_camera_info_topic", "extended_camera_info"}, {"mask", ""}});
 
+  // Allow to set initial camera info via parameters
+  node_->declare_parameters<std::vector<double>>(ns_,  {{"intrinsics", std::vector<double>{}},
+   {"distortion_coefficients", std::vector<double>{}}});
+  node_->declare_parameters<std::string>(ns_, {{"distortion_model", ""},
+   {"camera_model", ""},
+   {"frame_id", ""}});
+  node_->declare_parameters<std::vector<long int>>(ns_,  {{"resolution", std::vector<long int>{}}});
+
   // Load parameters
   node_->get_parameter(ns_ + ".image_topic", image_topic_);
   node_->get_parameter(ns_ + ".camera_info_topic", camera_info_topic_);
   node_->get_parameter(ns_ + ".extended_camera_info_topic", extended_camera_info_topic_);
   node_->get_parameter(ns_ + ".mask", mask_path_);
+
+  // Load initial camera info from parameters, if available
+  loadCameraInfoFromParams();
 
   // Load mask, if available
   if (!mask_path_.empty()) {
@@ -148,6 +159,40 @@ const CameraModel& Camera::model() const
 std::shared_ptr<sensor_msgs::msg::Image const> Camera::getLastImage() const
 {
   return last_image_;
+}
+
+void Camera::loadCameraInfoFromParams()
+{
+  std::vector<double> intrinsics;
+  node_->get_parameter(ns_ + ".intrinsics", intrinsics);
+  std::vector<double> distortion_coefficients;
+  node_->get_parameter(ns_ + ".distortion_coefficients", distortion_coefficients);
+  std::string distortion_model;
+  node_->get_parameter(ns_ + ".distortion_model", distortion_model);
+  std::string camera_model;
+  node_->get_parameter(ns_ + ".camera_model", camera_model);
+  std::string frame_id;
+  node_->get_parameter(ns_ + ".frame_id", frame_id);
+  std::vector<long int> resolution;
+  std::vector<int> resolution_int;
+  node_->get_parameter(ns_ + ".resolution", resolution);
+  // check if resolution is in 32 bit limit
+  if (resolution.size() == 2 && (resolution[0] < std::numeric_limits<int>::max() || resolution[1] < std::numeric_limits<int>::max())) {
+    resolution_int.push_back(resolution[0]);
+    resolution_int.push_back(resolution[1]);
+  }
+  if (!intrinsics.empty() && !distortion_coefficients.empty() && !distortion_model.empty() && !camera_model.empty() && !resolution.empty()) {
+    std::shared_ptr<extended_image_geometry_msgs::msg::ExtendedCameraInfo> camera_info = std::make_shared<extended_image_geometry_msgs::msg::ExtendedCameraInfo>();
+    camera_info->intrinsics = intrinsics;
+    camera_info->distortion_coeffs = distortion_coefficients;
+    camera_info->distortion_model = distortion_model;
+    camera_info->camera_model = camera_model;
+    camera_info->frame_id = frame_id;
+    camera_info->resolution = resolution_int;
+    model_.fromExtendedCameraInfo(camera_info);
+    extended_camera_info_received_ = true;
+  }
+
 }
 
 }

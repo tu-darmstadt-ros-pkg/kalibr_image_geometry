@@ -19,6 +19,7 @@
   <!-- <url type="website">http://wiki.ros.org/kalibr_camera_loader</url> -->
 
   <author email="oehler@sim.tu-darmstadt.de">Martin Oehler</author>
+  <maintainer email="bark@sim.tu-darmstadt.de">Frederik Bark</maintainer>
 
 
   <!-- The *depend tags are used to specify dependencies -->

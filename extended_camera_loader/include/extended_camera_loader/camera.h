@@ -31,6 +31,7 @@ private:
   void cameraInfoCb(const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
   void imageCb(const sensor_msgs::msg::Image::ConstSharedPtr& image);
 
+  void loadCameraInfoFromParams();
   rclcpp::Node::SharedPtr node_;
   std::string ns_;
 
