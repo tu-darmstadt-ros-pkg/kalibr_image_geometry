@@ -51,6 +51,7 @@ private:
   bool camera_info_received_;
   bool extended_camera_info_received_;
   image_transport::ImageTransport it_;
+  std::shared_ptr<image_transport::TransportHints> transport_hints_;
   image_transport::Subscriber image_sub_;
   std::mutex camera_info_mutex_;
 };

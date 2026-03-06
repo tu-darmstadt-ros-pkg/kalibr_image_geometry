@@ -13,6 +13,10 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
     {"camera_info_topic", "camera_info"},
     {"extended_camera_info_topic", "extended_camera_info"}, {"mask", ""}});
 
+  // Declare image transport outside of ns because it fails else
+  node_->declare_parameter<std::string>("image_transport", "raw");
+  transport_hints_ = std::make_shared<image_transport::TransportHints>(node_.get());
+
   // Allow to set initial camera info via parameters
   node_->declare_parameters<std::vector<double>>(ns_,  {{"intrinsics", std::vector<double>{}},
    {"distortion_coefficients", std::vector<double>{}}});
@@ -75,7 +79,7 @@ bool Camera::cameraInfoReceived() const
 
 void Camera::startImageSubscriber()
 {
-  image_sub_ = it_.subscribe(ns_ + "/" + image_topic_, 10, std::bind(&Camera::imageCb, this, std::placeholders::_1));
+  image_sub_ = it_.subscribe(ns_ + "/" + image_topic_, 10, &Camera::imageCb, this, transport_hints_.get(), rclcpp::SubscriptionOptions());
 }
 
 void Camera::stopImageSubscriber()
