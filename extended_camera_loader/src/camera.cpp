@@ -14,8 +14,8 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
     {"extended_camera_info_topic", "extended_camera_info"}, {"mask", ""}});
 
   // Declare image transport outside of ns because it fails else
-  node_->declare_parameter<std::string>("image_transport", "raw");
-  transport_hints_ = std::make_shared<image_transport::TransportHints>(node_.get());
+  node_->declare_parameter<std::string>(ns_ + ".image_transport", "raw");
+  transport_hints_ = std::make_shared<image_transport::TransportHints>(node_.get(), "raw", ns_ + ".image_transport");
 
   // Allow to set initial camera info via parameters
   node_->declare_parameters<std::vector<double>>(ns_,  {{"intrinsics", std::vector<double>{}},
