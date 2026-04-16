@@ -5,9 +5,7 @@ int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   std::shared_ptr<extended_image_geometry::CameraInfoPublisher> cam_info_pub = std::make_shared<extended_image_geometry::CameraInfoPublisher>(rclcpp::NodeOptions());
 
-  if (cam_info_pub->loadCameraInfoFromParam()) {
-    cam_info_pub->latchCameraInfo();
-  } else {
+  if (!cam_info_pub->loadCameraInfoFromParam()) {
     RCLCPP_ERROR_STREAM(cam_info_pub->get_logger(), "Failed to load camera info.");
     return -1;
   }

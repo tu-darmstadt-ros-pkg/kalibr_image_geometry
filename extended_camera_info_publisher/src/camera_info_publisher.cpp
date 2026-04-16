@@ -23,6 +23,10 @@ CameraInfoPublisher::CameraInfoPublisher(const rclcpp::NodeOptions& options)
   declare_parameter("distortion_coeffs", std::vector<double>{0.0, 0.0, 0.0, 0.0});
   declare_parameter("mask_path", "");
   declare_parameter("rate", 0.0);
+
+  if (loadCameraInfoFromParam()) {
+    latchCameraInfo();
+  }
 }
 
 bool CameraInfoPublisher::loadCameraInfoFromParam()
