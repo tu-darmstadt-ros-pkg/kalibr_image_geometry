@@ -21,6 +21,7 @@ endforeach()
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME} SHARED
+  include/${PROJECT_NAME}/color_maps.h
   include/${PROJECT_NAME}/camera_loader.h
   include/${PROJECT_NAME}/camera.h
   src/camera_loader.cpp

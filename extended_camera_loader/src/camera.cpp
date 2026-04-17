@@ -11,7 +11,7 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
   node_->declare_parameters<std::string>(ns_, 
     {{"image_topic", "image_raw"}, 
     {"camera_info_topic", "camera_info"},
-    {"extended_camera_info_topic", "extended_camera_info"}, {"mask", ""}});
+    {"extended_camera_info_topic", "extended_camera_info"}, {"mask", ""}, {"type", "rgb"}});
 
   // Declare image transport outside of ns because it fails else
   node_->declare_parameter<std::string>(ns_ + ".image_transport", "raw");
@@ -30,6 +30,25 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
   node_->get_parameter(ns_ + ".camera_info_topic", camera_info_topic_);
   node_->get_parameter(ns_ + ".extended_camera_info_topic", extended_camera_info_topic_);
   node_->get_parameter(ns_ + ".mask", mask_path_);
+  node_->get_parameter(ns_ + ".type", type_);
+
+  // for mono cameras, allow to load, min, max and color map
+  if (type_ == "mono") {
+    node_->declare_parameters<double>(ns_, {{"min_value", 0.0}, {"max_value", 65535.0}});
+    node_->declare_parameter<std::string>(ns_ + ".color_map", "");
+    node_->get_parameter(ns_ + ".min_value", min_value_);
+    node_->get_parameter(ns_ + ".max_value", max_value_);
+    std::string color_map_string;
+    node_->get_parameter(ns_ + ".color_map", color_map_string);
+
+    if (!color_map_string.empty()) {
+      use_color_map_ = true;
+      color_map_ = getColormapType(color_map_string);
+    } else {
+      use_color_map_ = false;
+    }
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Camera '" << ns_ << "' is set to mono mode with min_value: " << min_value_ << ", max_value: " << max_value_ << ", color_map: " << (use_color_map_ ? color_map_string : "none"));
+  }
 
   // Load initial camera info from parameters, if available
   loadCameraInfoFromParams();
@@ -135,7 +154,15 @@ cv_bridge::CvImageConstPtr Camera::getLastImageCv() const
   if (!last_image_cv_ && last_image_) {
     try
     {
-      last_image_cv_ = cv_bridge::toCvCopy(getLastImage(), "rgb8");
+      if (use_color_map_) {
+        auto last_image = getLastImage();
+        auto cv_ptr = cv_bridge::toCvCopy(last_image, last_image->encoding);
+        cv::Mat color_mapped;
+        applyColorMapRanged(cv_ptr->image, color_mapped, color_map_, min_value_, max_value_);
+        last_image_cv_ = std::make_shared<cv_bridge::CvImage>(cv_ptr->header, "rgb8", color_mapped);
+      } else {
+        last_image_cv_ = cv_bridge::toCvCopy(getLastImage(), "rgb8");
+      }
     }
     catch(cv_bridge::Exception& e)
     {

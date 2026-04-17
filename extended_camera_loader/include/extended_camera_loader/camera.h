@@ -2,11 +2,13 @@
 #define EXTENDED_CAMERA_LOADER_CAMERA_H
 
 #include <extended_camera_model/camera_model.h>
+#include <extended_camera_loader/color_maps.h>
 #include <extended_image_geometry_msgs/msg/extended_camera_info.hpp>
 #include <sensor_msgs/msg/camera_info.h>
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <image_transport/image_transport.hpp>
+
 
 namespace extended_image_geometry {
 
@@ -42,6 +44,7 @@ private:
   sensor_msgs::msg::Image::SharedPtr mask_msg_;
 
   std::string name_;
+  std::string type_; //rgb, mono
   CameraModel model_;
   std::shared_ptr<sensor_msgs::msg::Image const> last_image_;
   mutable cv_bridge::CvImage::ConstPtr last_image_cv_;
@@ -54,6 +57,11 @@ private:
   std::shared_ptr<image_transport::TransportHints> transport_hints_;
   image_transport::Subscriber image_sub_;
   std::mutex camera_info_mutex_;
+
+  cv::ColormapTypes color_map_;
+  bool use_color_map_;
+  double min_value_;
+  double max_value_;
 };
 
 typedef std::shared_ptr<Camera> CameraPtr ;
