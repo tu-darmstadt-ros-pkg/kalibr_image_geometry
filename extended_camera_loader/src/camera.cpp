@@ -192,6 +192,14 @@ std::shared_ptr<sensor_msgs::msg::Image const> Camera::getLastImage() const
   return last_image_;
 }
 
+builtin_interfaces::msg::Time Camera::getLastStamp() const
+{
+  if (!last_image_) {
+    return builtin_interfaces::msg::Time();
+  }
+  return last_image_->header.stamp;
+}
+
 void Camera::loadCameraInfoFromParams()
 {
   std::vector<double> intrinsics;

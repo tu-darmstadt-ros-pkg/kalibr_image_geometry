@@ -24,6 +24,7 @@ public:
   std::string getCameraNs() const;
   std::shared_ptr<sensor_msgs::msg::Image const> getLastImage() const;
   cv_bridge::CvImageConstPtr getLastImageCv() const;
+  builtin_interfaces::msg::Time getLastStamp() const;
 
   std::string getName() const;
   const CameraModel& model() const;
