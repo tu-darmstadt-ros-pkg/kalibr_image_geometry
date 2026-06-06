@@ -164,9 +164,11 @@ cv_bridge::CvImageConstPtr Camera::getLastImageCv() const
         last_image_cv_ = cv_bridge::toCvCopy(getLastImage(), "rgb8");
       }
     }
-    catch(cv_bridge::Exception& e)
+    catch (const std::exception& e)
     {
-      RCLCPP_ERROR_STREAM(node_->get_logger(), "CV Bridge conversion failed: " << e.what());
+      // Catches both cv_bridge::Exception and cv::Exception (e.g. an invalid colormap id)
+      RCLCPP_ERROR_STREAM_THROTTLE(node_->get_logger(), *node_->get_clock(), 5000,
+        "Image conversion failed for camera '" << ns_ << "': " << e.what());
     }
   }
 

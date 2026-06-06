@@ -59,10 +59,10 @@ private:
   image_transport::Subscriber image_sub_;
   std::mutex camera_info_mutex_;
 
-  cv::ColormapTypes color_map_;
-  bool use_color_map_;
-  double min_value_;
-  double max_value_;
+  cv::ColormapTypes color_map_ = cv::COLORMAP_INFERNO;
+  bool use_color_map_ = false;
+  double min_value_ = 0.0;
+  double max_value_ = 65535.0;
 };
 
 typedef std::shared_ptr<Camera> CameraPtr ;
