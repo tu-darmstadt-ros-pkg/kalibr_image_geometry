@@ -98,7 +98,7 @@ bool Camera::cameraInfoReceived() const
 
 void Camera::startImageSubscriber()
 {
-  image_sub_ = it_.subscribe(ns_ + "/" + image_topic_, 10, &Camera::imageCb, this, transport_hints_.get(), rclcpp::SubscriptionOptions());
+  image_sub_ = it_.subscribe(ns_ + "/" + image_topic_, 1, &Camera::imageCb, this, transport_hints_.get(), rclcpp::SubscriptionOptions());
 }
 
 void Camera::stopImageSubscriber()
