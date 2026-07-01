@@ -92,11 +92,11 @@ Color CameraModel::worldToColor<Color>(const Eigen::Vector3d& point3d, const cv:
   return Color(worldToColor<cv::Vec3b>(point3d, img, confidence));
 }
 
-template<>
+/*template<>
 float CameraModel::worldToColor<float>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
 {
   return worldToColor<float>(point3d, img, confidence);
-}
+}*/
 
 template <typename ColorVecType>
 ColorVecType CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
@@ -113,6 +113,9 @@ ColorVecType CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv:
   }
 }
 
+template float CameraModel::worldToColor<float>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const;
+
+template uint16_t CameraModel::worldToColor<uint16_t>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const;
 
 
 std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr camera_info)
@@ -130,6 +133,23 @@ std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const exte
   // Unknown distortion model
   RCLCPP_ERROR_STREAM(rclcpp::get_logger("Camera Model"), "Unknown distortion model '" << camera_info->distortion_model << "'");
   return std::shared_ptr<CameraGeometryBase>();
+}
+
+// color value at pixel because opencv is not supporting mono 16. TODO, maybe just convert image to fp32 instead? interpolation?
+template<>
+uint16_t CameraModel::interpolate<uint16_t>(
+    const cv::Mat& img,
+    const Eigen::Vector2d& pixel) const
+{
+    const int x = std::clamp(
+        static_cast<int>(std::lround(pixel.x())),
+        0, img.cols - 1);
+
+    const int y = std::clamp(
+        static_cast<int>(std::lround(pixel.y())),
+        0, img.rows - 1);
+
+    return img.at<uint16_t>(y, x);
 }
 
 template<typename ColorVecType>

@@ -73,9 +73,11 @@ bool CameraInfoPublisher::loadCameraInfoFromParam()
   }
 
   if (success) {
-    rclcpp::QoS qos_profile(1);
+    rclcpp::QoS qos_profile(10);
     qos_profile.transient_local().reliable();
     cam_info_pub_ = create_publisher<extended_image_geometry_msgs::msg::ExtendedCameraInfo>("extended_camera_info", qos_profile);
+  } else {
+    RCLCPP_ERROR(get_logger(), "Failed to load camera info parameters.");
   }
 
   return success;
@@ -83,6 +85,7 @@ bool CameraInfoPublisher::loadCameraInfoFromParam()
 
 void CameraInfoPublisher::latchCameraInfo() {
   cam_info_pub_->publish(camera_info_);
+  RCLCPP_INFO(get_logger(), "Transient local camera info published.");
 }
 
 }

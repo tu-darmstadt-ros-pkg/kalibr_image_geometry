@@ -67,7 +67,7 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
   }
 
   // Subscribers
-  rclcpp::QoS qos = rclcpp::QoS(1).transient_local().reliable();
+  rclcpp::QoS qos = rclcpp::QoS(10).transient_local().reliable();
   extended_camera_info_sub_ = node_->create_subscription<extended_image_geometry_msgs::msg::ExtendedCameraInfo>(
     ns_ + "/" + extended_camera_info_topic_, qos, std::bind(&Camera::extendedCameraInfoCb, this, std::placeholders::_1));
   
