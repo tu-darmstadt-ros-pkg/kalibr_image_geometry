@@ -67,7 +67,7 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
   }
 
   // Subscribers
-  rclcpp::QoS qos = rclcpp::QoS(10).transient_local();
+  rclcpp::QoS qos = rclcpp::QoS(1).transient_local().reliable();
   extended_camera_info_sub_ = node_->create_subscription<extended_image_geometry_msgs::msg::ExtendedCameraInfo>(
     ns_ + "/" + extended_camera_info_topic_, qos, std::bind(&Camera::extendedCameraInfoCb, this, std::placeholders::_1));
   
@@ -154,7 +154,7 @@ cv_bridge::CvImageConstPtr Camera::getLastImageCv() const
   if (!last_image_cv_ && last_image_) {
     try
     {
-      if (use_color_map_) {
+      if (use_color_map_ && type_ == "mono") {
         auto last_image = getLastImage();
         auto cv_ptr = cv_bridge::toCvCopy(last_image, last_image->encoding);
         cv::Mat color_mapped;
@@ -173,6 +173,32 @@ cv_bridge::CvImageConstPtr Camera::getLastImageCv() const
   }
 
   return last_image_cv_;
+}
+
+cv_bridge::CvImageConstPtr Camera::getLastImageCvMono() const
+{
+  // Check if value was cached
+  if (!last_image_cv_mono_ && last_image_) {
+    try
+    {
+      if (type_ == "mono") {
+        auto last_image = getLastImage();
+        last_image_cv_mono_ = cv_bridge::toCvCopy(last_image, last_image->encoding);
+      } else {
+        auto image_rgb = cv_bridge::toCvCopy(getLastImage(), "rgb8");
+        cv::cvtColor(image_rgb->image, last_image_cv_mono_->image, cv::COLOR_RGB2GRAY);
+        last_image_cv_mono_ = std::make_shared<cv_bridge::CvImage>(image_rgb->header, "mono8", last_image_cv_mono_->image);
+      }
+    }
+    catch (const std::exception& e)
+    {
+      // Catches both cv_bridge::Exception and cv::Exception (e.g. an invalid colormap id)
+      RCLCPP_ERROR_STREAM_THROTTLE(node_->get_logger(), *node_->get_clock(), 5000,
+        "Image conversion failed for camera '" << ns_ << "': " << e.what());
+    }
+  }
+
+  return last_image_cv_mono_;
 }
 
 std::string Camera::getName() const

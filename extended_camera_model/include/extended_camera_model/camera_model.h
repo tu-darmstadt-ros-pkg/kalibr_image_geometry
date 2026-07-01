@@ -17,6 +17,8 @@ constexpr double INVALID = std::numeric_limits<double>::max();
 
 struct Color {
   Color() : r(0), g(0), b(0) {}
+  Color(const cv::Vec3b& color_vec)
+    : r(color_vec[0]), g(color_vec[1]), b(color_vec[2]) {}
   Color(uint8_t _r, uint8_t _g, uint8_t _b)
     : r(_r), g(_g), b(_b) {}
 
@@ -31,7 +33,8 @@ public:
   bool isInitialized();
 
   bool worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const;
-  Color worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const;
+  template <typename ColorVecType>
+  ColorVecType worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const;
   double distanceFromCenter(Eigen::Vector2d& pixel) const;
 
   const extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr cameraInfo() const;
@@ -80,7 +83,8 @@ private:
     return std::shared_ptr<CameraGeometryBase>();
   }
 
-  cv::Vec3b interpolate(const cv::Mat& img, const Eigen::Vector2d &pixel) const;
+  template<typename ColorVecType>
+  ColorVecType interpolate(const cv::Mat& img, const Eigen::Vector2d &pixel) const;
 
   bool initialized_;
   extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr camera_info_;

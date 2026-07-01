@@ -25,7 +25,10 @@ CameraInfoPublisher::CameraInfoPublisher(const rclcpp::NodeOptions& options)
   declare_parameter("rate", 0.0);
 
   if (loadCameraInfoFromParam()) {
+    RCLCPP_INFO(get_logger(), "Successfully loaded camera info from parameters.");
     latchCameraInfo();
+  } else {
+    RCLCPP_ERROR(get_logger(), "Failed to load camera info from parameters.");
   }
 }
 
@@ -56,7 +59,8 @@ bool CameraInfoPublisher::loadCameraInfoFromParam()
 
   // Load mask
   std::string mask_path;
-  if (get_parameter("mask_path", mask_path)) {
+  get_parameter("mask_path", mask_path);
+  if (mask_path != "") {
     cv::Mat mask = cv::imread(mask_path, cv::IMREAD_GRAYSCALE);
     if (mask.empty()) {
       RCLCPP_ERROR_STREAM(get_logger(), "Failed to load mask from '" << mask_path << "'.");
@@ -69,8 +73,8 @@ bool CameraInfoPublisher::loadCameraInfoFromParam()
   }
 
   if (success) {
-    rclcpp::QoS qos_profile(10);
-    qos_profile.transient_local();
+    rclcpp::QoS qos_profile(1);
+    qos_profile.transient_local().reliable();
     cam_info_pub_ = create_publisher<extended_image_geometry_msgs::msg::ExtendedCameraInfo>("extended_camera_info", qos_profile);
   }
 

@@ -86,18 +86,34 @@ bool CameraModel::worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& 
   }
 }
 
-Color CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
+template<>
+Color CameraModel::worldToColor<Color>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
+{
+  return Color(worldToColor<cv::Vec3b>(point3d, img, confidence));
+}
+
+template<>
+float CameraModel::worldToColor<float>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
+{
+  return worldToColor<float>(point3d, img, confidence);
+}
+
+template <typename ColorVecType>
+ColorVecType CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
 {
   Eigen::Vector2d pixel(2);
   if (worldToPixel(point3d, pixel)) {
-    cv::Vec3b color_vec = interpolate(img, pixel);
+    ColorVecType color_vec = interpolate<ColorVecType>(img, pixel);
     confidence = distanceFromCenter(pixel);
-    return Color(color_vec[0], color_vec[1], color_vec[2]);
+    return color_vec;
   } else {
     confidence = INVALID; // kinda hacky?
-    return Color();
+    ColorVecType color_vec;
+    return color_vec;
   }
 }
+
+
 
 std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr camera_info)
 {
@@ -116,12 +132,13 @@ std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const exte
   return std::shared_ptr<CameraGeometryBase>();
 }
 
-cv::Vec3b CameraModel::interpolate(const cv::Mat& img, const Eigen::Vector2d& pixel) const
+template<typename ColorVecType>
+ColorVecType CameraModel::interpolate(const cv::Mat& img, const Eigen::Vector2d& pixel) const
 {
   cv::Point2f pt(static_cast<float>(pixel(0)), static_cast<float>(pixel(1)));
   cv::Mat patch;
   cv::getRectSubPix(img, cv::Size(1,1), pt, patch);
-  return patch.at<cv::Vec3b>(0,0);
+  return patch.at<ColorVecType>(0,0);
 }
 
 double CameraModel::distanceFromCenter(Eigen::Vector2d& pixel) const

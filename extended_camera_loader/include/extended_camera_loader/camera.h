@@ -24,6 +24,7 @@ public:
   std::string getCameraNs() const;
   std::shared_ptr<sensor_msgs::msg::Image const> getLastImage() const;
   cv_bridge::CvImageConstPtr getLastImageCv() const;
+  cv_bridge::CvImageConstPtr getLastImageCvMono() const;
   builtin_interfaces::msg::Time getLastStamp() const;
 
   std::string getName() const;
@@ -49,6 +50,7 @@ private:
   CameraModel model_;
   std::shared_ptr<sensor_msgs::msg::Image const> last_image_;
   mutable cv_bridge::CvImage::ConstPtr last_image_cv_;
+  mutable cv_bridge::CvImage::ConstPtr last_image_cv_mono_;
 
   rclcpp::Subscription<extended_image_geometry_msgs::msg::ExtendedCameraInfo>::SharedPtr extended_camera_info_sub_;
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
