@@ -48,7 +48,6 @@ class PinholeProjection {
       const Eigen::MatrixBase<DERIVED_P> & p,
       const Eigen::MatrixBase<DERIVED_K> & outKeypointConst,
       const Eigen::MatrixBase<DERIVED_JP> & outJp) const {
-
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE_OR_DYNAMIC(
         Eigen::MatrixBase<DERIVED_P>, 3);
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE_OR_DYNAMIC(

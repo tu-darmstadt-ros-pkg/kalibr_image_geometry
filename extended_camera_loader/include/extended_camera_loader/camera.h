@@ -43,14 +43,17 @@ private:
   std::string camera_info_topic_;
   std::string extended_camera_info_topic_;
   std::string mask_path_;
+  std::string gain_map_path_;
   sensor_msgs::msg::Image::SharedPtr mask_msg_;
 
   std::string name_;
   std::string type_; //rgb, mono
+  bool use_gain_map_;
   CameraModel model_;
   std::shared_ptr<sensor_msgs::msg::Image const> last_image_;
   mutable cv_bridge::CvImage::ConstPtr last_image_cv_;
   mutable cv_bridge::CvImage::ConstPtr last_image_cv_mono_;
+  std::shared_ptr<cv::Mat> gain_map_;
 
   rclcpp::Subscription<extended_image_geometry_msgs::msg::ExtendedCameraInfo>::SharedPtr extended_camera_info_sub_;
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;

@@ -11,7 +11,7 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
   node_->declare_parameters<std::string>(ns_, 
     {{"image_topic", "image_raw"}, 
     {"camera_info_topic", "camera_info"},
-    {"extended_camera_info_topic", "extended_camera_info"}, {"mask", ""}, {"type", "rgb"}});
+    {"extended_camera_info_topic", "extended_camera_info"}, {"mask", ""}, {"type", "rgb"}, {"gain_map_path", ""}});
 
   // Declare image transport outside of ns because it fails else
   node_->declare_parameter<std::string>(ns_ + ".image_transport", "raw");
@@ -24,12 +24,14 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
    {"camera_model", ""},
    {"frame_id", ""}});
   node_->declare_parameters<std::vector<long int>>(ns_,  {{"resolution", std::vector<long int>{}}});
+  node_->declare_parameter<bool>(ns_ + ".use_gain_map", false);
 
   // Load parameters
   node_->get_parameter(ns_ + ".image_topic", image_topic_);
   node_->get_parameter(ns_ + ".camera_info_topic", camera_info_topic_);
   node_->get_parameter(ns_ + ".extended_camera_info_topic", extended_camera_info_topic_);
   node_->get_parameter(ns_ + ".mask", mask_path_);
+  node_->get_parameter(ns_ + ".gain_map_path", gain_map_path_);
   node_->get_parameter(ns_ + ".type", type_);
 
   // for mono cameras, allow to load, min, max and color map
@@ -59,10 +61,37 @@ Camera::Camera(const rclcpp::Node::SharedPtr node, std::string ns)
     if (mask.empty()) {
       RCLCPP_ERROR_STREAM(node_->get_logger(), "Failed to load mask from '" << mask_path_ << "'.");
     } else {
+      RCLCPP_INFO_STREAM(node_->get_logger(), "Loaded mask from file: " << mask_path_);
       cv_bridge::CvImage cv_image;
       cv_image.encoding = sensor_msgs::image_encodings::MONO8;
       cv_image.image = mask;
       mask_msg_ = cv_image.toImageMsg();
+    }
+  }
+
+  // Load gain map if desired and available
+  node_->get_parameter(ns_ + ".use_gain_map", use_gain_map_);
+  if (!gain_map_path_.empty()) {
+    cv::Mat gain_map;
+    if (type_ == "mono") {
+      gain_map = cv::imread(gain_map_path_, cv::IMREAD_UNCHANGED);
+      if (gain_map.type() != CV_32FC1) {
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "Gain map is not fp32, please provide a valid gain map");
+        gain_map = cv::Mat();
+      }
+    } else {
+      gain_map = cv::imread(gain_map_path_, cv::IMREAD_UNCHANGED);
+      cv::cvtColor(gain_map, gain_map, cv::COLOR_BGR2RGB);
+      if (gain_map.type() != CV_32FC3) {
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "Gain map is not fp32, please provide a valid gain map");
+        gain_map = cv::Mat();
+      }
+    }
+    if (gain_map.empty()) {
+      RCLCPP_ERROR_STREAM(node_->get_logger(), "Failed to load gain_map from '" << gain_map_path_ << "'.");
+    } else {
+      RCLCPP_INFO_STREAM(node_->get_logger(), "Loaded gain_map from file: " << gain_map_path_);
+      gain_map_ = std::make_shared<cv::Mat>(gain_map);
     }
   }
 
@@ -170,6 +199,10 @@ cv_bridge::CvImageConstPtr Camera::getLastImageCv() const
       RCLCPP_ERROR_STREAM_THROTTLE(node_->get_logger(), *node_->get_clock(), 5000,
         "Image conversion failed for camera '" << ns_ << "': " << e.what());
     }
+
+    if (use_gain_map_ && gain_map_) {
+      cv::multiply(last_image_cv_->image, *gain_map_, last_image_cv_->image, 1.0);
+    }
   }
 
   return last_image_cv_;
@@ -195,6 +228,10 @@ cv_bridge::CvImageConstPtr Camera::getLastImageCvMono() const
       // Catches both cv_bridge::Exception and cv::Exception (e.g. an invalid colormap id)
       RCLCPP_ERROR_STREAM_THROTTLE(node_->get_logger(), *node_->get_clock(), 5000,
         "Image conversion failed for camera '" << ns_ << "': " << e.what());
+    }
+
+    if (use_gain_map_ && gain_map_) {
+      cv::multiply(last_image_cv_->image, *gain_map_, last_image_cv_->image, 1.0);
     }
   }
 
