@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(kalibr_camera_model)
+project(extended_camera_model)
 
 # Default to C++17
 if (NOT CMAKE_CXX_STANDARD)
@@ -24,9 +24,11 @@ foreach(Dependency IN ITEMS ${DEPENDENCIES})
     find_package(${Dependency} REQUIRED)
 endforeach()
 
+file(GLOB CAMERA_HEADERS "include/${PROJECT_NAME}/cameras/*.h")
 # Library
 add_library(${PROJECT_NAME} SHARED
     include/${PROJECT_NAME}/camera_model.h
+    include/${PROJECT_NAME}/cameras.h
     src/camera_model.cpp
 )
 target_include_directories(${PROJECT_NAME}

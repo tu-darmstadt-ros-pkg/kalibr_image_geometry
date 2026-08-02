@@ -4,17 +4,18 @@
 #include <rclcpp/rclcpp.hpp>
 #include <extended_image_geometry_msgs/msg/extended_camera_info.hpp>
 
-namespace kalibr_image_geometry {
+namespace extended_image_geometry {
 
 class CameraInfoPublisher : public rclcpp::Node {
 public:
-  CameraInfoPublisher();
-  bool loadCameraInfoFromYAML(const std::string& file_path);
+  CameraInfoPublisher(const rclcpp::NodeOptions& options);
+  bool loadCameraInfoFromParam();
   void latchCameraInfo();
 private:
   std::string camera_ns_;
   extended_image_geometry_msgs::msg::ExtendedCameraInfo camera_info_;
   rclcpp::Publisher<extended_image_geometry_msgs::msg::ExtendedCameraInfo>::SharedPtr cam_info_pub_;
+  rclcpp::TimerBase::SharedPtr timer_;
 };
 
 }

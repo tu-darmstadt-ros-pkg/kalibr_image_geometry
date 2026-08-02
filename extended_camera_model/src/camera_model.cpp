@@ -1,18 +1,18 @@
-#include <kalibr_camera_model/camera_model.h>
+#include <extended_camera_model/camera_model.h>
 
-namespace kalibr_image_geometry {
+namespace extended_image_geometry {
 
 CameraModel::CameraModel()
   : initialized_(false) {
 
 }
 
-bool CameraModel::fromExtendedCameraInfo(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info)
+bool CameraModel::fromExtendedCameraInfo(const extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr camera_info)
 {
   camera_info_ = camera_info;
   camera_geometry_ = createCameraGeometry(camera_info);
   if (!camera_geometry_) {
-    ROS_ERROR_STREAM("Creating camera geometry failed.");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("Camera Model"), "Creating camera geometry failed.");
     return false;
   }
 
@@ -20,45 +20,47 @@ bool CameraModel::fromExtendedCameraInfo(const kalibr_image_geometry_msgs::Exten
   return true;
 }
 
-bool CameraModel::fromCameraInfo(const sensor_msgs::CameraInfo& camera_info, const sensor_msgs::Image& mask)
+bool CameraModel::fromCameraInfo(const sensor_msgs::msg::CameraInfo::SharedPtr camera_info, const sensor_msgs::msg::Image::SharedPtr mask)
 {
-  kalibr_image_geometry_msgs::ExtendedCameraInfo extended_camera_info;
-  extended_camera_info.header = camera_info.header;
-  extended_camera_info.camera_name = camera_info.header.frame_id;
-  extended_camera_info.frame_id = camera_info.header.frame_id;
-  extended_camera_info.resolution.resize(2);
-  extended_camera_info.resolution[0] = static_cast<int>(camera_info.width);
-  extended_camera_info.resolution[1] = static_cast<int>(camera_info.height);
+  extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr extended_camera_info = std::make_shared<extended_image_geometry_msgs::msg::ExtendedCameraInfo>();
+  extended_camera_info->header = camera_info->header;
+  extended_camera_info->camera_name = camera_info->header.frame_id;
+  extended_camera_info->frame_id = camera_info->header.frame_id;
+  extended_camera_info->resolution.resize(2);
+  extended_camera_info->resolution[0] = static_cast<int>(camera_info->width);
+  extended_camera_info->resolution[1] = static_cast<int>(camera_info->height);
 
   // Camera model
-  extended_camera_info.camera_model = "pinhole";
-  extended_camera_info.intrinsics.resize(4);
-  extended_camera_info.intrinsics[0] = camera_info.K[0]; // fu
-  extended_camera_info.intrinsics[1] = camera_info.K[4]; // fv
-  extended_camera_info.intrinsics[2] = camera_info.K[2]; // pu
-  extended_camera_info.intrinsics[3] = camera_info.K[5]; // pv
+  extended_camera_info->camera_model = "pinhole";
+  extended_camera_info->intrinsics.resize(4);
+  extended_camera_info->intrinsics[0] = camera_info->k[0]; // fu
+  extended_camera_info->intrinsics[1] = camera_info->k[4]; // fv
+  extended_camera_info->intrinsics[2] = camera_info->k[2]; // pu
+  extended_camera_info->intrinsics[3] = camera_info->k[5]; // pv
 
   // Distortion model
-  if (camera_info.distortion_model.empty() || camera_info.distortion_model == "none") {
-    extended_camera_info.distortion_model = "none";
-  } else if (camera_info.distortion_model == "plumb_bob") {
-    bool zeros_or_empty = std::all_of(camera_info.D.begin(), camera_info.D.end(), [](int i) { return i==0; });
+  if (camera_info->distortion_model.empty() || camera_info->distortion_model == "none") {
+    extended_camera_info->distortion_model = "none";
+  } else if (camera_info->distortion_model == "plumb_bob") {
+    bool zeros_or_empty = std::all_of(camera_info->d.begin(), camera_info->d.end(), [](int i) { return i==0; });
     if (zeros_or_empty) {
-      extended_camera_info.distortion_model = "none";
+      extended_camera_info->distortion_model = "none";
     } else {
-      if (camera_info.D.size() < 4) {
-        ROS_ERROR_STREAM("Invalid number of distortion coefficients.");
-        extended_camera_info.distortion_model = "none";
+      if (camera_info->d.size() < 4) {
+        RCLCPP_ERROR_STREAM(rclcpp::get_logger("Camera Model"), "Invalid number of distortion coefficients.");
+        extended_camera_info->distortion_model = "none";
       } else {
-        extended_camera_info.distortion_model = "radtan";
-        extended_camera_info.distortion_coeffs.resize(4);
-        std::copy(camera_info.D.begin(), camera_info.D.end(), extended_camera_info.distortion_coeffs.begin());
+        extended_camera_info->distortion_model = "radtan";
+        extended_camera_info->distortion_coeffs.resize(4);
+        std::copy(camera_info->d.begin(), camera_info->d.end(), extended_camera_info->distortion_coeffs.begin());
       }
     }
   }
 
-  // Mask
-  extended_camera_info.mask = mask;
+  // Copy mask, if it was given
+  if (mask) {
+    extended_camera_info->mask = *mask;
+  }
 
   return fromExtendedCameraInfo(extended_camera_info);
 }
@@ -71,7 +73,7 @@ bool CameraModel::isInitialized()
 bool CameraModel::worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& pixel_out) const
 {
   if (!camera_geometry_) {
-    ROS_ERROR_STREAM("Camera geometry has not been initialized yet.");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("Camera Model"), "Camera geometry has not been initialized yet.");
     return false;
   }
   Eigen::VectorXd pixel(2);
@@ -84,50 +86,87 @@ bool CameraModel::worldToPixel(const Eigen::Vector3d& point3d, Eigen::Vector2d& 
   }
 }
 
-Color CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
+template<>
+Color CameraModel::worldToColor<Color>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
+{
+  return Color(worldToColor<cv::Vec3b>(point3d, img, confidence));
+}
+
+/*template<>
+float CameraModel::worldToColor<float>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
+{
+  return worldToColor<float>(point3d, img, confidence);
+}*/
+
+template <typename ColorVecType>
+ColorVecType CameraModel::worldToColor(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const
 {
   Eigen::Vector2d pixel(2);
   if (worldToPixel(point3d, pixel)) {
-    cv::Vec3b color_vec = interpolate(img, pixel);
+    ColorVecType color_vec = interpolate<ColorVecType>(img, pixel);
     confidence = distanceFromCenter(pixel);
-    return Color(color_vec[0], color_vec[1], color_vec[2]);
+    return color_vec;
   } else {
     confidence = INVALID; // kinda hacky?
-    return Color();
+    ColorVecType color_vec;
+    return color_vec;
   }
 }
 
-std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const kalibr_image_geometry_msgs::ExtendedCameraInfo& camera_info)
+template float CameraModel::worldToColor<float>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const;
+
+template uint16_t CameraModel::worldToColor<uint16_t>(const Eigen::Vector3d& point3d, const cv::Mat& img, double& confidence) const;
+
+
+std::shared_ptr<CameraGeometryBase> CameraModel::createCameraGeometry(const extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr camera_info)
 {
 
   // Load projection model
-  if (camera_info.distortion_model == "radtan") {
-    RadialTangentialDistortion distortion(camera_info.distortion_coeffs[0], camera_info.distortion_coeffs[1],
-                                          camera_info.distortion_coeffs[2], camera_info.distortion_coeffs[3]);
+  if (camera_info->distortion_model == "radtan") {
+    RadialTangentialDistortion distortion(camera_info->distortion_coeffs[0], camera_info->distortion_coeffs[1],
+                                          camera_info->distortion_coeffs[2], camera_info->distortion_coeffs[3]);
     return createCameraGeometry(camera_info, distortion);
-  } else if (camera_info.distortion_model == "none") {
+  } else if (camera_info->distortion_model == "none") {
     NoDistortion distortion;
     return createCameraGeometry(camera_info, distortion);
   }
   // Unknown distortion model
-  ROS_ERROR_STREAM("Unknown distortion model '" << camera_info.distortion_model << "'");
+  RCLCPP_ERROR_STREAM(rclcpp::get_logger("Camera Model"), "Unknown distortion model '" << camera_info->distortion_model << "'");
   return std::shared_ptr<CameraGeometryBase>();
 }
 
-cv::Vec3b CameraModel::interpolate(const cv::Mat& img, const Eigen::Vector2d& pixel) const
+// color value at pixel because opencv is not supporting mono 16. TODO, maybe just convert image to fp32 instead? interpolation?
+template<>
+uint16_t CameraModel::interpolate<uint16_t>(
+    const cv::Mat& img,
+    const Eigen::Vector2d& pixel) const
+{
+    const int x = std::clamp(
+        static_cast<int>(std::lround(pixel.x())),
+        0, img.cols - 1);
+
+    const int y = std::clamp(
+        static_cast<int>(std::lround(pixel.y())),
+        0, img.rows - 1);
+
+    return img.at<uint16_t>(y, x);
+}
+
+template<typename ColorVecType>
+ColorVecType CameraModel::interpolate(const cv::Mat& img, const Eigen::Vector2d& pixel) const
 {
   cv::Point2f pt(static_cast<float>(pixel(0)), static_cast<float>(pixel(1)));
   cv::Mat patch;
   cv::getRectSubPix(img, cv::Size(1,1), pt, patch);
-  return patch.at<cv::Vec3b>(0,0);
+  return patch.at<ColorVecType>(0,0);
 }
 
 double CameraModel::distanceFromCenter(Eigen::Vector2d& pixel) const
 {
-  return std::pow(pixel(0) - camera_info_.resolution[0] / 2.0, 2) + std::pow(pixel(1) - camera_info_.resolution[1] / 2.0, 2);
+  return std::pow(pixel(0) - camera_info_->resolution[0] / 2.0, 2) + std::pow(pixel(1) - camera_info_->resolution[1] / 2.0, 2);
 }
 
-const kalibr_image_geometry_msgs::ExtendedCameraInfo& CameraModel::cameraInfo() const
+const extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr CameraModel::cameraInfo() const
 {
   return camera_info_;
 }

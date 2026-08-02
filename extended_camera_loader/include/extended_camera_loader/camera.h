@@ -1,0 +1,77 @@
+#ifndef EXTENDED_CAMERA_LOADER_CAMERA_H
+#define EXTENDED_CAMERA_LOADER_CAMERA_H
+
+#include <extended_camera_model/camera_model.h>
+#include <extended_camera_loader/color_maps.h>
+#include <extended_image_geometry_msgs/msg/extended_camera_info.hpp>
+#include <sensor_msgs/msg/camera_info.h>
+
+#include <cv_bridge/cv_bridge.hpp>
+#include <image_transport/image_transport.hpp>
+
+
+namespace extended_image_geometry {
+
+class Camera {
+public:
+  Camera(const rclcpp::Node::SharedPtr node, std::string ns);
+  bool waitForCameraInfo(const rclcpp::Duration& timeout) const;
+  bool cameraInfoReceived() const;
+
+  void startImageSubscriber();
+  void stopImageSubscriber();
+
+  std::string getCameraNs() const;
+  std::shared_ptr<sensor_msgs::msg::Image const> getLastImage() const;
+  cv_bridge::CvImageConstPtr getLastImageCv() const;
+  cv_bridge::CvImageConstPtr getLastImageCvMono() const;
+  builtin_interfaces::msg::Time getLastStamp() const;
+
+  std::string getName() const;
+  const CameraModel& model() const;
+
+private:
+  void extendedCameraInfoCb(const extended_image_geometry_msgs::msg::ExtendedCameraInfo::SharedPtr camera_info);
+  void cameraInfoCb(const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
+  void imageCb(const sensor_msgs::msg::Image::ConstSharedPtr& image);
+
+  void loadCameraInfoFromParams();
+  rclcpp::Node::SharedPtr node_;
+  std::string ns_;
+
+  std::string image_topic_;
+  std::string camera_info_topic_;
+  std::string extended_camera_info_topic_;
+  std::string mask_path_;
+  std::string gain_map_path_;
+  sensor_msgs::msg::Image::SharedPtr mask_msg_;
+
+  std::string name_;
+  std::string type_; //rgb, mono
+  bool use_gain_map_;
+  CameraModel model_;
+  std::shared_ptr<sensor_msgs::msg::Image const> last_image_;
+  mutable cv_bridge::CvImage::ConstPtr last_image_cv_;
+  mutable cv_bridge::CvImage::ConstPtr last_image_cv_mono_;
+  std::shared_ptr<cv::Mat> gain_map_;
+
+  rclcpp::Subscription<extended_image_geometry_msgs::msg::ExtendedCameraInfo>::SharedPtr extended_camera_info_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
+  bool camera_info_received_;
+  bool extended_camera_info_received_;
+  image_transport::ImageTransport it_;
+  std::shared_ptr<image_transport::TransportHints> transport_hints_;
+  image_transport::Subscriber image_sub_;
+  std::mutex camera_info_mutex_;
+
+  cv::ColormapTypes color_map_ = cv::COLORMAP_INFERNO;
+  bool use_color_map_ = false;
+  double min_value_ = 0.0;
+  double max_value_ = 65535.0;
+};
+
+typedef std::shared_ptr<Camera> CameraPtr ;
+
+}
+
+#endif
